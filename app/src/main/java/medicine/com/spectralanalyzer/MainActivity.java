@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Pair;
 import android.view.View;
-import android.widget.EditText;
 
 import com.musicg.wave.Wave;
 
@@ -17,28 +16,16 @@ import java.util.List;
 
 public class MainActivity extends Activity {
 
-
-    private EditText editText;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        editText = (EditText) findViewById(R.id.editText);
     }
-
-    // TODO: 23.03.16 replace using this method onto log to console
-    public void write(String str) {
-        editText.append(str.concat("\r\n"));
-    }
-
 
     public void onBtnClick(View view) throws FileNotFoundException {
         File audioWavFile = new File(Environment.getExternalStorageDirectory(), "Download/android_shared/file1.wav");
-        write("Red file".concat(audioWavFile.getAbsolutePath()));
 
         if (! audioWavFile.exists()) {
-            write("file:".concat(audioWavFile.getAbsolutePath()).concat(" doesn't exist"));
             return;
         }
 
@@ -47,9 +34,6 @@ public class MainActivity extends Activity {
 
         short[] sampleAmplitudes = wave.getSampleAmplitudes();
         int channels = wave.getWaveHeader().getChannels();
-
-        // length of audio file
-        float duration = wave.length();
 
         // if stereo audio. Obtain for processing only first channel.
         // doesn't matter which one.
@@ -60,20 +44,44 @@ public class MainActivity extends Activity {
                 oneChanelAudio[j] = sampleAmplitudes[i];
             }
         }
-
-        write("Red file".concat(audioWavFile.getAbsolutePath()));
+        findPlace(wave, oneChanelAudio);
 
     }
 
     // TODO: 23.03.16 extract this method to external class
-    private void findPlace(short[] waves) {
+    private void findPlace(Wave wave, short[] waves) {
         int start, end;
         List<Pair<Integer, Integer>> periods = new ArrayList<>();
-        List<Object> foundedWaves;
-        ShortBuffer sb = ShortBuffer.allocate(waves.length);
+        ShortBuffer sb = ShortBuffer.allocate(waves.length / 2);
 
+        int silence = 50;
+
+        double halfSecondRate = 0.5;
+
+        Integer allowedSilenceLength = (int) (0.03 * wave.getWaveHeader().getSampleRate());
+        Integer silenceCounter = 0;
+
+        int max = 0;
         for (int i = 0; i < waves.length; i++) {
-            //
+            max = max < waves[i] ? waves[i] : max;
+            if (waves[i] > silence || waves[i] < -silence) {
+                sb.put(waves[i]);
+                silenceCounter = 0;
+            } else {
+                if (++silenceCounter < allowedSilenceLength) {
+                    sb.put(waves[i]);
+                    continue;
+                }
+                silenceCounter = 0;
+                // current i is silence
+                if (isLengthEnough(sb.position(), wave.getWaveHeader().getSampleRate(), halfSecondRate)) {
+                    start = i - sb.position();
+                    end = sb.position()-1;
+                    Pair<Integer, Integer> period = Pair.create(start, end);
+                    periods.add(period);
+                }
+                sb = (ShortBuffer) sb.clear();
+            }
         }
 
     }
@@ -81,17 +89,12 @@ public class MainActivity extends Activity {
     /**
      * Verify is length of audio segment is bigger than 0.5 sec
      *
-     * @param shortBuffer segment of audio file
      * @return <b>true</b> if length > 0.5 sec, <b>false</b> otherwise.
      */
     // TODO: 23.03.16 extract this method to external class
-    private boolean isLengthEnough(ShortBuffer shortBuffer, Integer sampleRate) {
-        if (shortBuffer != null) {
-            int capacity = shortBuffer.capacity();
-            return  capacity > sampleRate;
-
-        }
-        return false;
+    private boolean isLengthEnough(Integer sampleCount, Integer sampleRate, Double targetSeconds) {
+        double targetSampleCountForTime = sampleRate * targetSeconds;
+        return  sampleCount > targetSampleCountForTime;
     }
 
 }

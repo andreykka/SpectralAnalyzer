@@ -18,17 +18,8 @@
         android:layout_centerHorizontal="true"
         android:onClick="onBtnClick"/>
 
-    <EditText
-        android:layout_width="fill_parent"
+    <medicine
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:id="@+id/editText"
-        android:layout_below="@+id/start_process_btn"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp" />
+        android:layout_below="@+id/start_process_btn" />
 </RelativeLayout>
