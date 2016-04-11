@@ -18,8 +18,9 @@
         android:layout_centerHorizontal="true"
         android:onClick="onBtnClick"/>
 
-    <medicine
+    <LinearLayout
+        android:id="@+id/container"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/start_process_btn" />
+        android:layout_height="wrap_content"/>
 </RelativeLayout>
