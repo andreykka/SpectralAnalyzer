@@ -2,23 +2,12 @@ package medicine.com.spectralanalyzer;
 
 import android.util.Log;
 import android.util.Pair;
-import android.util.TimingLogger;
 
 import com.musicg.wave.Wave;
 
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
-import org.joda.time.Period;
-import org.joda.time.format.DateTimeFormat;
-
 import java.nio.ShortBuffer;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import java.util.Timer;
 
 public class AudioProcessor {
     /**
@@ -55,10 +44,10 @@ public class AudioProcessor {
                 : sampleAmplitudes.length / channelsCount + 1;
 
         short[] singleWayChannel = new short[oneChannelLength];
-        for (int i=1, j=0; i < sampleAmplitudes.length; i += channelsCount, j++ ) {
+        for (int i = 1, j = 0; i < sampleAmplitudes.length; i += channelsCount, j++) {
             singleWayChannel[j] = sampleAmplitudes[i];
         }
-    
+
         return singleWayChannel;
     }
 
@@ -72,6 +61,10 @@ public class AudioProcessor {
 
     public static void setAllowedSilentRatio(double allowedSilentRatio) {
         ALLOWED_SILENT_RATIO = allowedSilentRatio;
+    }
+
+    public static void setSILENT(int SILENT) {
+        AudioProcessor.SILENT = SILENT;
     }
 
     /**
@@ -110,7 +103,7 @@ public class AudioProcessor {
             }
         }
         long after = System.currentTimeMillis();
-        Log.d(TAG, "Spent time: " + (after-before) + " ms");
+        Log.d(TAG, "Spent time: " + (after - before) + " ms");
         return periods;
     }
 
@@ -123,7 +116,7 @@ public class AudioProcessor {
      */
     private boolean isLengthEnough(Integer sampleCount, Integer sampleRate) {
         double targetSampleCountForTime = sampleRate * ALLOWED_SILENT_RATIO;
-        return  sampleCount > targetSampleCountForTime;
+        return sampleCount > targetSampleCountForTime;
     }
-    
+
 }

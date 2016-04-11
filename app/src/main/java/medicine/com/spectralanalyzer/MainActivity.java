@@ -28,7 +28,7 @@ public class MainActivity extends FragmentActivity {
     public void onBtnClick(View view) throws FileNotFoundException {
         File audioWavFile = new File(Environment.getExternalStorageDirectory(), "Download/android_shared/file1.wav");
 
-        if (! audioWavFile.exists()) {
+        if (!audioWavFile.exists()) {
             return;
         }
 
