@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 
+import android.widget.Button;
 import com.musicg.wave.Wave;
 
 import java.io.File;
@@ -23,27 +24,15 @@ public class MainActivity extends FragmentActivity {
     private CustomWaveFormFragment waveformFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
 
+    private Button btnZoomIn;
+    private Button btnZoomOut;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        File audioWavFile = new File(Environment.getExternalStorageDirectory(), "Download/android_shared/file1.wav");
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (!audioWavFile.exists()) {
-            return;
-        }
-
-        audioProcessor = new AudioProcessor(new Wave(audioWavFile.getAbsolutePath()));
-
-        List<Pair<Integer, Integer>> periodsOfSound = audioProcessor.getPeriodsOfSound();
-
-        waveformFragment = new CustomWaveFormFragment();
-        waveformFragment.setFileName(audioWavFile.getAbsolutePath());
-        waveformFragment.setPeriods(periodsOfSound);
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.add(R.id.container, waveformFragment);
-        fragmentTransaction.commit();
+        btnZoomIn = (Button) findViewById(R.id.btn_zoom_in);
+        btnZoomOut = (Button) findViewById(R.id.btn_zoom_out);
 
     }
 
@@ -56,9 +45,25 @@ public class MainActivity extends FragmentActivity {
 
         audioProcessor = new AudioProcessor(new Wave(audioWavFile.getAbsolutePath()));
 
-        List<Pair<Integer, Integer>> periodsOfSound = audioProcessor.getPeriodsOfSound();
-        Log.i(TAG, "Founded " + periodsOfSound.size() + " periods of sounds");
+        waveformFragment = new CustomWaveFormFragment();
+        waveformFragment.setFileName(audioWavFile.getAbsolutePath());
 
+        List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
+        waveformFragment.setPeriods(periodsOfSound);
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+        fragmentTransaction.add(R.id.container, waveformFragment);
+        fragmentTransaction.commit();
+
+        Log.i(TAG, "Founded " + periodsOfSound.size() + " periods of sounds");
+    }
+
+    public void zoomIn(View view) {
+        waveformFragment.waveformZoomIn();
+    }
+
+    public void zoomOut(View view) {
+        waveformFragment.waveformZoomOut();
     }
 
 }

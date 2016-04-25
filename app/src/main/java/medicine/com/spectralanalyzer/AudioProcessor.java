@@ -7,6 +7,8 @@ import com.musicg.wave.Wave;
 
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class AudioProcessor {
@@ -23,16 +25,18 @@ public class AudioProcessor {
     /**
      * Minimal value of silence.
      */
-    private static int SILENT = 3;
+    private static int SILENT = 2;
 
     private Wave wave;
     private short[] oneChannelData;
+    private int sampleRate;
     private int period;
 
     public AudioProcessor(Wave wave) {
         this.wave = wave;
         oneChannelData = getSingleChannelData(wave);
-        period = wave.getWaveHeader().getSampleRate() / 1000; // 44100   1000 1 ms
+        sampleRate = wave.getWaveHeader().getSampleRate();
+        period = sampleRate / 1000; // 44100/1000 = 1 ms
     }
 
     private short[] getSingleChannelData(Wave wave) {
@@ -71,39 +75,41 @@ public class AudioProcessor {
      * Finds the place in audio wave that contains sound.
      *
      * @return List of pairs, first element indicate start sample,
-     * <br>second element indicate count of frames, that contain sound
+     * <br>second element indicate end sample.
      */
     public List<Pair<Integer, Integer>> getPeriodsOfSound() {
         long before = System.currentTimeMillis();
         int start, end;
         List<Pair<Integer, Integer>> periods = new ArrayList<>();
-        ShortBuffer sb = ShortBuffer.allocate(oneChannelData.length / 2);
+        ShortBuffer buff = ShortBuffer.allocate(oneChannelData.length / 2);
 
-        // (int) (0.03 * wave.getWaveHeader().getSampleRate());
-        int silenceCounter = 0, allowedSilenceLength = 3; // ms
+        int silenceCounter = 0;
+        int allowedSilenceLength = 4; // ms
 
         for (int i = 0; i < oneChannelData.length; i += period) {
             if (oneChannelData[i] > SILENT || oneChannelData[i] < -SILENT) {
-                sb.put(oneChannelData[i]);
+                buff.put(oneChannelData[i]);
                 silenceCounter = 0;
             } else {
                 if (++silenceCounter < allowedSilenceLength) {
-                    sb.put(oneChannelData[i]);
+                    buff.put(oneChannelData[i]);
                     continue;
                 }
                 silenceCounter = 0;
                 // current i is silence
-                if (isLengthEnough(sb.position() * period, wave.getWaveHeader().getSampleRate())) {
-                    start = (i - 1) - sb.position() * period;
-                    end = sb.position() * period;
+                if (isLengthEnough(buff.position() * period)) {
+                    end = i - 1;
+                    start = end - (buff.position() * period);
+                    start = start < 0 ? 0 : start;
                     Pair<Integer, Integer> range = Pair.create(start, end);
                     periods.add(range);
                 }
-                sb = (ShortBuffer) sb.clear();
+                buff = (ShortBuffer) buff.clear();
             }
         }
         long after = System.currentTimeMillis();
         Log.d(TAG, "Spent time: " + (after - before) + " ms");
+        Log.d(TAG, "Found periods: " + periods.size());
         return periods;
     }
 
@@ -114,9 +120,38 @@ public class AudioProcessor {
      *
      * @return <b>true</b> if length > 0.5sec, <b>false</b> otherwise.
      */
-    private boolean isLengthEnough(Integer sampleCount, Integer sampleRate) {
+    private boolean isLengthEnough(Integer sampleCount) {
         double targetSampleCountForTime = sampleRate * ALLOWED_SILENT_RATIO;
         return sampleCount > targetSampleCountForTime;
     }
+
+    public List<Pair<Double, Double>> getInSecondPeriods() {
+        List<Pair<Integer, Integer>> periodsOfSound = getPeriodsOfSound();
+        List<Pair<Double, Double>> inSecondPeriods = new ArrayList<>(periodsOfSound.size());
+        double first, second;
+        for (Pair<Integer, Integer> period: periodsOfSound) {
+            first = period.first / 44100d;
+            second = period.second / 44100d;
+            inSecondPeriods.add(Pair.create(first, second));
+        }
+        return inSecondPeriods;
+    }
+
+    public List<Short> getDataForPeriod(int start, int end) {
+        int length = end - start;
+        if (length <= 0)
+            throw  new IllegalArgumentException("End period can't be bigger than start");
+        List<Short> data = new ArrayList<>(length);
+        short[] out = new short[length];
+        System.arraycopy(oneChannelData, start, out, 0, length);
+
+        for (short s: out) {
+            data.add(s);
+        }
+
+        return data;
+    }
+
+
 
 }

@@ -12,7 +12,7 @@ import java.util.List;
 public class CustomWaveFormFragment extends WaveformFragment {
 
     private String fileName = "notFound";
-    private List<Pair<Integer, Integer>> periods = new ArrayList<>();
+    private List<Pair<Double, Double>> periods = new ArrayList<>();
 
     public CustomWaveFormFragment() {
     }
@@ -21,7 +21,7 @@ public class CustomWaveFormFragment extends WaveformFragment {
         this.fileName = fileName;
     }
 
-    public void setPeriods(List<Pair<Integer, Integer>> periods) {
+    public void setPeriods(List<Pair<Double, Double>> periods) {
         this.periods = periods;
     }
 
@@ -34,10 +34,8 @@ public class CustomWaveFormFragment extends WaveformFragment {
     protected List<Segment> getSegments() {
         List<Segment> segmentList = new ArrayList<>(periods.size());
 
-        for (Pair<Integer, Integer> period: periods) {
-            double start = period.first / 44100;
-            double end = (period.first + period.second) / 44100;
-            Segment segment = new Segment(start, end, Color.rgb(238, 23, 104));
+        for (Pair<Double, Double> period: periods) {
+            Segment segment = new Segment(period.first, period.second, Color.rgb(238, 23, 104));
             segmentList.add(segment);
         }
 
