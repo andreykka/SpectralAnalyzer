@@ -3,4 +3,13 @@
     <string name="start_process_btn">Start</string>
     <string name="btn_zoom_in">+</string>
     <string name="btn_zoom_out">-</string>
+
+    <string name="btn_record_point1">Record Point 1</string>
+    <string name="btn_record_point2">Record Point 2</string>
+    <string name="btn_record_point3">Record Point 3</string>
+    <string name="btn_record_point4">Record Point 4</string>
+    <string name="btn_record_point5">Record Point 5</string>
+
+    <string name="btn_submit">Submit</string>
+
 </resources>

@@ -33,7 +33,6 @@ public class MainActivity extends FragmentActivity {
 
         btnZoomIn = (Button) findViewById(R.id.btn_zoom_in);
         btnZoomOut = (Button) findViewById(R.id.btn_zoom_out);
-
     }
 
     public void onBtnClick(View view) throws FileNotFoundException {
@@ -54,8 +53,9 @@ public class MainActivity extends FragmentActivity {
 
         fragmentTransaction.add(R.id.container, waveformFragment);
         fragmentTransaction.commit();
-
-        Log.i(TAG, "Founded " + periodsOfSound.size() + " periods of sounds");
+        btnZoomIn.setEnabled(true);
+        btnZoomOut.setEnabled(true);
+        Log.i(TAG, "Found " + periodsOfSound.size() + " periods of sounds");
     }
 
     public void zoomIn(View view) {
