@@ -26,6 +26,7 @@ public class MainActivity extends FragmentActivity {
 
     private Button btnZoomIn;
     private Button btnZoomOut;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +47,6 @@ public class MainActivity extends FragmentActivity {
 
         waveformFragment = new CustomWaveFormFragment();
         waveformFragment.setFileName(audioWavFile.getAbsolutePath());
-
         List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
         waveformFragment.setPeriods(periodsOfSound);
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
