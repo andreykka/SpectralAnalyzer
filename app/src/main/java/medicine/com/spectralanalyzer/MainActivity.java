@@ -11,6 +11,7 @@ import android.view.View;
 
 import android.widget.Button;
 import com.musicg.wave.Wave;
+import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,6 +27,7 @@ public class MainActivity extends FragmentActivity {
 
     private Button btnZoomIn;
     private Button btnZoomOut;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,7 +35,6 @@ public class MainActivity extends FragmentActivity {
 
         btnZoomIn = (Button) findViewById(R.id.btn_zoom_in);
         btnZoomOut = (Button) findViewById(R.id.btn_zoom_out);
-
     }
 
     public void onBtnClick(View view) throws FileNotFoundException {
@@ -48,14 +49,18 @@ public class MainActivity extends FragmentActivity {
         waveformFragment = new CustomWaveFormFragment();
         waveformFragment.setFileName(audioWavFile.getAbsolutePath());
 
+        ProcessorResult processorResult = audioProcessor.processAudio();
+
         List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
+
         waveformFragment.setPeriods(periodsOfSound);
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragmentTransaction.add(R.id.container, waveformFragment);
         fragmentTransaction.commit();
-
-        Log.i(TAG, "Founded " + periodsOfSound.size() + " periods of sounds");
+        btnZoomIn.setEnabled(true);
+        btnZoomOut.setEnabled(true);
+        Log.i(TAG, "Found " + periodsOfSound.size() + " periods of sounds");
     }
 
     public void zoomIn(View view) {
