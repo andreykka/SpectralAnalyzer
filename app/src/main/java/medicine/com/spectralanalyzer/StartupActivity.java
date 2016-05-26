@@ -2,17 +2,17 @@ package medicine.com.spectralanalyzer;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import org.joda.time.DateTime;
 
 import java.io.File;
-import java.io.IOException;
 
+import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
 import static medicine.com.spectralanalyzer.ActivityConstants.PATH_NAME;
 
 public class StartupActivity extends Activity {
@@ -69,6 +69,10 @@ public class StartupActivity extends Activity {
         startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
     }
 
+    public void submitRequest() {
+
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RECORD_AUDIO_REQUEST_CODE) {
@@ -89,11 +93,11 @@ public class StartupActivity extends Activity {
 
     private void initializeSessionPath() {
         sessionPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        sessionPath += "/" + DIR_NAME;
+        sessionPath += "/" + DIR_NAME + "/" + DATE_TIME_FORMATTER.print(DateTime.now());
 
         File f = new File(sessionPath);
         if (! f.exists()) {
-            f.mkdir();
+            f.mkdirs();
         }
     }
 }

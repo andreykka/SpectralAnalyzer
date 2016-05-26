@@ -11,6 +11,7 @@ import android.view.View;
 
 import android.widget.Button;
 import com.musicg.wave.Wave;
+import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,7 +48,11 @@ public class MainActivity extends FragmentActivity {
 
         waveformFragment = new CustomWaveFormFragment();
         waveformFragment.setFileName(audioWavFile.getAbsolutePath());
+
+        ProcessorResult processorResult = audioProcessor.processAudio();
+
         List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
+
         waveformFragment.setPeriods(periodsOfSound);
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 

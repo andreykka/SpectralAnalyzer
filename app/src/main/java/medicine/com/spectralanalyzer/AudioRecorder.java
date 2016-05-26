@@ -12,14 +12,13 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import java.io.IOException;
 
+import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
+
 public class AudioRecorder extends Activity {
 
-    private DateTimeFormatter formatter = DateTimeFormat.forPattern("YYYYMMDDhhmmsss");
     private static final String EXTENSION = ".3gp";
     private static final String LOG_TAG = "AudioRecorder";
 
@@ -34,7 +33,7 @@ public class AudioRecorder extends Activity {
 
         if (requestedIntent != null) {
             String pathName = requestedIntent.getStringExtra(ActivityConstants.PATH_NAME);
-            mFileName = pathName.concat("/").concat(formatter.print(DateTime.now())).concat(EXTENSION);
+            mFileName = pathName.concat("/").concat(DATE_TIME_FORMATTER.print(DateTime.now())).concat(EXTENSION);
             Log.i(LOG_TAG, mFileName);
         } else {
             Intent resultIntent = new Intent();
