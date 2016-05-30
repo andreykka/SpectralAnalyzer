@@ -36,5 +36,7 @@ dependencies {
     compile 'com.github.Semantive:waveform-android:v1.2a'
     compile 'joda-time:joda-time:2.9.3' // Joda Time library https://github.com/JodaOrg/joda-time
     compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'com.github.PhilJay:MPAndroidChart:v2.2.4'
 
+    compile 'com.google.android.gms:play-services-appindexing:8.1.0'
 }

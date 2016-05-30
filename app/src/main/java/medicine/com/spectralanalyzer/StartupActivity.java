@@ -8,9 +8,13 @@ import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import com.musicg.wave.Wave;
+import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 import org.joda.time.DateTime;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
 import static medicine.com.spectralanalyzer.ActivityConstants.PATH_NAME;
@@ -19,6 +23,8 @@ public class StartupActivity extends Activity {
 
     private static final String DIR_NAME = "AnalyzerData";
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;
+
+    private AudioProcessor audioProcessor;
 
     private String sessionPath;
 
@@ -63,13 +69,25 @@ public class StartupActivity extends Activity {
 
         buttonToDisable = (Button) view;
 
-        Intent intent = new Intent(this, AudioRecorder.class);
+        Intent intent = new Intent(this, AudioRecorder2.class);
         intent.putExtra(PATH_NAME, sessionPath);
 
         startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
     }
 
-    public void submitRequest() {
+    public void submitRequest(View view) {
+        File dir = new File(sessionPath);
+        File[] files = dir.listFiles();
+
+        List<ProcessorResult> resultList = new ArrayList<>();
+
+        for (File file : files) {
+            if (file.exists()) {
+                audioProcessor = new AudioProcessor(new Wave(file.getAbsolutePath()));
+                resultList.add(audioProcessor.processAudio());
+                audioProcessor = null;
+            }
+        }
 
     }
 
