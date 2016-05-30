@@ -1,10 +1,9 @@
 package medicine.com.spectralanalyzer;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
+import android.media.*;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,8 +25,13 @@ public class AudioRecorder2 extends Activity {
     private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
     private String sessionPath;
+    private AudioTrack track;
     private AudioRecord recorder = null;
-    private int bufferSize = 0;
+    private AudioManager audioManager;
+
+    private int recorderBufferSize = 0;
+    private int trackerBufferSize = 0;
+
     private Thread recordingThread = null;
     private boolean isRecording = false;
     private Button btnStart;
@@ -40,7 +44,7 @@ public class AudioRecorder2 extends Activity {
         int min = 0;
         int sec = 0;
         int ms = 0;
-        int PERIOD = 100;
+        int PERIOD = 200;
 
         @Override
         public void run() {
@@ -59,7 +63,6 @@ public class AudioRecorder2 extends Activity {
         }
     };
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,9 +80,15 @@ public class AudioRecorder2 extends Activity {
             finish();
         }
 
-        bufferSize = AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE,
+        recorderBufferSize = AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT);
+
+        trackerBufferSize = AudioTrack.getMinBufferSize(RECORDER_SAMPLE_RATE,
+                AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT);
+        audioManager = ((AudioManager) getSystemService(Context.AUDIO_SERVICE));
+        audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
 
         setButtonHandlers();
         enableButtons(false);
@@ -122,11 +131,20 @@ public class AudioRecorder2 extends Activity {
 
     private void startRecording() {
         recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                RECORDER_SAMPLE_RATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, bufferSize);
+                RECORDER_SAMPLE_RATE, RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING, recorderBufferSize);
 
-        int state = recorder.getState();
-        if (state == AudioRecord.STATE_INITIALIZED) {
+        track = new AudioTrack(AudioManager.MODE_IN_COMMUNICATION,
+                RECORDER_SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, trackerBufferSize, AudioTrack.MODE_STREAM);
+
+        int recorderState = recorder.getState();
+        if (recorderState == AudioRecord.STATE_INITIALIZED) {
             recorder.startRecording();
+        }
+
+        int trackerState = track.getState();
+        if (trackerState == AudioTrack.STATE_INITIALIZED) {
+            track.play();
         }
 
         isRecording = true;
@@ -141,7 +159,7 @@ public class AudioRecorder2 extends Activity {
     }
 
     private void writeAudioDataToFile() {
-        byte data[] = new byte[bufferSize];
+        byte data[] = new byte[recorderBufferSize];
         String filename = getTempFilename();
         FileOutputStream os = null;
 
@@ -155,7 +173,9 @@ public class AudioRecorder2 extends Activity {
 
         if (null != os) {
             while (isRecording) {
-                read = recorder.read(data, 0, bufferSize);
+                read = recorder.read(data, 0, recorderBufferSize);
+
+                track.write(data, 0, read);
 
                 if (AudioRecord.ERROR_INVALID_OPERATION != read) {
                     try {
@@ -179,14 +199,22 @@ public class AudioRecorder2 extends Activity {
         if (null != recorder) {
             isRecording = false;
 
-            int i = recorder.getState();
-            if (i == 1) {
+            int recorderState = recorder.getState();
+            if (recorderState == AudioRecord.STATE_INITIALIZED) {
                 recorder.stop();
             }
             recorder.release();
-
             recorder = null;
             recordingThread = null;
+        }
+
+        if (null != track) {
+            int trackerState = track.getState();
+            if (trackerState == AudioTrack.STATE_INITIALIZED) {
+                track.stop();
+            }
+            track.release();
+            track = null;
         }
 
         copyWaveFile(getTempFilename(), getFilename());
@@ -212,7 +240,7 @@ public class AudioRecorder2 extends Activity {
         int channels = 1;
         long byteRate = RECORDER_BPP * RECORDER_SAMPLE_RATE * channels / 8;
 
-        byte[] data = new byte[bufferSize];
+        byte[] data = new byte[recorderBufferSize];
 
         try {
             in = new FileInputStream(inFilename);

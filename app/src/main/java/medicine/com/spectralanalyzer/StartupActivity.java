@@ -69,7 +69,7 @@ public class StartupActivity extends Activity {
 
         buttonToDisable = (Button) view;
 
-        Intent intent = new Intent(this, AudioRecorder2.class);
+        Intent intent = new Intent(this, AudioRecorder3.class);
         intent.putExtra(PATH_NAME, sessionPath);
 
         startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
