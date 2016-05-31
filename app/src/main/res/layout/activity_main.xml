@@ -25,7 +25,8 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/start_process_btn"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true">
+    </LinearLayout>
     <Button
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
@@ -48,5 +49,13 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ShowChart"
+            android:id="@+id/chrtBtn"
+            android:layout_gravity="bottom"
+            android:layout_alignParentTop="true" android:layout_toLeftOf="@+id/btn_zoom_in"
+            android:layout_toStartOf="@+id/btn_zoom_in" android:onClick="showChart"/>
 
 </RelativeLayout>

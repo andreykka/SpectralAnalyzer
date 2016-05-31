@@ -4,6 +4,8 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
+    <color name="specterColor">#4084FF</color>
+
     <color name="actionSuccess">#23BAAA</color>
     <color name="actionFail">#FA5085</color>
 </resources>

@@ -1,7 +1,9 @@
 package medicine.com.spectralanalyzer.pojo;
 
 
-public class ProcessorResult {
+import java.io.Serializable;
+
+public class ProcessorResult implements Serializable {
 
 
     private int countWaves;
@@ -25,12 +27,12 @@ public class ProcessorResult {
      * Max amplitude of reduction during between peristaltic period. In %.
      * <br> Max amplitude value.
      */
-    private double reductionAmplitudeInPeristalticPeriod;
+    private double maxReductionAmplitudeInNotPeristalticPeriod;
 
     /**
      * Average amplitude of not peristaltic waves. In %.
      */
-    private double avrgAmplitudeOrReductionInNotPeristalticWaves;
+    private double avrgReductionAmplitudeInNotPeristalticPeriod;
 
     /**
      * Average time of increasing amplitudes. In seconds.
@@ -80,20 +82,20 @@ public class ProcessorResult {
         this.avrgAmplitudePeristalticWaves = avrgAmplitudePeristalticWaves;
     }
 
-    public double getReductionAmplitudeInPeristalticPeriod() {
-        return reductionAmplitudeInPeristalticPeriod;
+    public double getMaxReductionAmplitudeInNotPeristalticPeriod() {
+        return maxReductionAmplitudeInNotPeristalticPeriod;
     }
 
-    public void setReductionAmplitudeInPeristalticPeriod(double reductionAmplitudeInPeristalticPeriod) {
-        this.reductionAmplitudeInPeristalticPeriod = reductionAmplitudeInPeristalticPeriod;
+    public void setMaxReductionAmplitudeInNotPeristalticPeriod(double maxReductionAmplitudeInNotPeristalticPeriod) {
+        this.maxReductionAmplitudeInNotPeristalticPeriod = maxReductionAmplitudeInNotPeristalticPeriod;
     }
 
-    public double getAvrgAmplitudeOrReductionInNotPeristalticWaves() {
-        return avrgAmplitudeOrReductionInNotPeristalticWaves;
+    public double getAvrgReductionAmplitudeInNotPeristalticPeriod() {
+        return avrgReductionAmplitudeInNotPeristalticPeriod;
     }
 
-    public void setAvrgAmplitudeOrReductionInNotPeristalticWaves(double avrgAmplitudeOrReductionInNotPeristalticWaves) {
-        this.avrgAmplitudeOrReductionInNotPeristalticWaves = avrgAmplitudeOrReductionInNotPeristalticWaves;
+    public void setAvrgReductionAmplitudeInNotPeristalticPeriod(double avrgReductionAmplitudeInNotPeristalticPeriod) {
+        this.avrgReductionAmplitudeInNotPeristalticPeriod = avrgReductionAmplitudeInNotPeristalticPeriod;
     }
 
     public double getAvrgAmplitudeIncreasingTime() {

@@ -19,16 +19,17 @@ public class AudioProcessor {
     private static final String TAG = AudioProcessor.class.getSimpleName();
 
     /**
-     * In seconds value, indicate allowed length of silent inside sound
+     *10 In seconds value, indicate allowed length of silent inside sound
      */
-    private static double ALLOWED_SILENT_RATIO = 0.5;
+    private static float ALLOWED_SILENT_RATIO = 0.5f;
 
     /**
      * Minimal value of silence.
      */
-    private static int SILENT = 2;
+    private static int SILENT = 0;
 
     private Wave wave;
+
     private short[] singleChannelData;
 
     /**
@@ -37,7 +38,7 @@ public class AudioProcessor {
     private int sampleRate;
 
     /**
-     * Step to navigating = 1 millisecond
+     *10 Step to navigating = 1 millisecond
      */
     private int period;
 
@@ -46,6 +47,11 @@ public class AudioProcessor {
         singleChannelData = getSingleChannelData(wave);
         sampleRate = wave.getWaveHeader().getSampleRate();
         period = sampleRate / 1000; // 44100/1000 = 1 ms
+    }
+
+    public static void setUpConfiguration(float allowedSilentRatio, int silentValue) {
+        ALLOWED_SILENT_RATIO = allowedSilentRatio;
+        SILENT = silentValue;
     }
 
     private short[] getSingleChannelData(Wave wave) {
@@ -68,7 +74,7 @@ public class AudioProcessor {
         return wave;
     }
 
-    public static void setAllowedSilentDuration(double allowedSilentRatio) {
+    public static void setAllowedSilentDuration(float allowedSilentRatio) {
         ALLOWED_SILENT_RATIO = allowedSilentRatio;
     }
 
@@ -89,7 +95,7 @@ public class AudioProcessor {
         ShortBuffer buff = ShortBuffer.allocate(singleChannelData.length / 2);
 
         int silenceCounter = 0;
-        int allowedSilenceLength = 4; // ms
+        int allowedSilenceLength = 4; // milliseconds
 
         for (int i = 0; i < singleChannelData.length; i += period) {
             if (singleChannelData[i] > SILENT || singleChannelData[i] < -SILENT) {
@@ -150,15 +156,10 @@ public class AudioProcessor {
         int length = end - start;
         if (length <= 0)
             throw  new IllegalArgumentException("End period can't be bigger than start");
-        List<Short> data = new ArrayList<>(length);
         short[] out = new short[length];
         System.arraycopy(singleChannelData, start, out, 0, length);
 
-        for (short s: out) {
-            data.add(s);
-        }
-
-        return data;
+        return Arrays.asList(ArrayUtils.toObject(out));
     }
 
     /**
@@ -200,19 +201,28 @@ public class AudioProcessor {
         ProcessorResult processorResult = new ProcessorResult();
 
         List<Pair<Integer, Integer>> periodsOfSound = getPeriodsOfSound();
+        List<Pair<Integer, Integer>> periodsBetweenSounds = getPeriodsBetweenSounds(periodsOfSound);
         // 1
         processorResult.setCountWaves(periodsOfSound.size());
         // 2
-        processorResult.setAvrgWaveDuration(getAvrgPeristalticPeriodDuration(periodsOfSound));
+        processorResult.setAvrgWaveDuration(getAvrgDurationByPeriods(periodsOfSound));
         // 3 max + max + ... / count
-        processorResult.setAvrgMaxAmplitudePeristalticWaves(
-                getAvrgValueOfMaxAmplitudesPeristalticWaves(periodsOfSound));
+        processorResult.setAvrgMaxAmplitudePeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second / Short.MAX_VALUE);
 
         // 4 ???
-
+        Pair<Integer, Double> maxAndAvrgMaxNonPeristalticPeriod = getMaxAndAvrgMaxAmplitude(periodsBetweenSounds);
         // 5
-        
+        processorResult.setMaxReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / Short.MAX_VALUE);
 
+        // 6
+        processorResult.setAvrgReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / Short.MAX_VALUE);
+        Pair<Double, Double> durationToMaxAndFromMax = calculateDurationToMaxAndFromMax(periodsOfSound);
+
+        // 7
+        processorResult.setAvrgAmplitudeIncreasingTime(durationToMaxAndFromMax.first);
+
+        // 8
+        processorResult.setAvrgAmplitudeDecreasingTime(durationToMaxAndFromMax.second / Short.MAX_VALUE);
 
         return processorResult;
     }
@@ -226,7 +236,7 @@ public class AudioProcessor {
      * @param periods
      * @return
      */
-    private double getAvrgPeristalticPeriodDuration(List<Pair<Integer, Integer>> periods) {
+    private double getAvrgDurationByPeriods(List<Pair<Integer, Integer>> periods) {
         int sampleCount = 0;
 
         for (Pair<Integer, Integer> period: periods) {
@@ -236,28 +246,96 @@ public class AudioProcessor {
         return getInSecondsDurationBySamples(sampleCount) / (double) periods.size();
     }
 
-    private double getAvrgValueOfMaxAmplitudesPeristalticWaves(List<Pair<Integer, Integer>> periods) {
-        List<Integer> maxAmplitudeValues = new ArrayList<>(periods.size());
+    /**
+     * Returns pair of values
+     * <br> First - pair of [Max value] and [Index]
+     * <br> Second - Average of max values
+     *
+     * @param periods list of periods.
+     * @return Pair of max and average max values.
+     */
+    private Pair<Integer, Double> getMaxAndAvrgMaxAmplitude(List<Pair<Integer, Integer>> periods) {
+        List<Integer> maxAmplitudes = new ArrayList<>(periods.size());
 
-        Short[] wavesForPeriod;
+        List<Short> wavesForPeriod;
         for (Pair<Integer, Integer> period: periods) {
-            int length = period.second - period.first +1;
-            short[] shorts = Arrays.copyOf(singleChannelData, length);
-            wavesForPeriod = ArrayUtils.toObject(shorts);
-//            System.arraycopy(singleChannelData, period.first, wavesForPeriod, 0, length);
-            Pair<Integer, Integer> maxValueAndIndex = getMaxValueAndIndex(Arrays.asList(wavesForPeriod));
+            wavesForPeriod = getDataForPeriod(period.first, period.second);
+            Pair<Integer, Integer> maxValueAndIndex = getMaxValueAndIndex(wavesForPeriod);
 
-            maxAmplitudeValues.add(maxValueAndIndex.first);
+            maxAmplitudes.add(maxValueAndIndex.first);
         }
 
         int sumOfMaxAmplitudeValues = 0;
-        for (Integer maxValue: maxAmplitudeValues) {
-            sumOfMaxAmplitudeValues += maxValue;
+        int max = 0;
+
+        for (Integer amplitude : maxAmplitudes) {
+            if (max > amplitude) {
+                max = amplitude;
+            }
+            sumOfMaxAmplitudeValues += amplitude;
         }
 
-        return (double) sumOfMaxAmplitudeValues / (double) periods.size();
+        double avrgMax = (double) sumOfMaxAmplitudeValues / (double) periods.size();
+
+        return Pair.create(max, avrgMax);
     }
 
 
+    /**
+     * Get Pair of values that indicates.
+     * <br>First - duration to max element.
+     * <br>Second - duration from max element to the end.
+     *
+     * @param periods
+     * @return
+     */
+    private Pair<Double, Double> calculateDurationToMaxAndFromMax(List<Pair<Integer, Integer>> periods) {
+        List<Short> wavesWithMaxValue = new ArrayList<>();
+        Pair<Integer, Integer> maxValueWithIndex = Pair.create(0, 0);
+
+        int max = 0;
+
+        List<Short> wavesForPeriod;
+        for (Pair<Integer, Integer> period : periods) {
+            wavesForPeriod = getDataForPeriod(period.first, period.second);
+            Pair<Integer, Integer> pair = getMaxValueAndIndex(wavesForPeriod);
+            if (pair.first > max) {
+                max = pair.first;
+                maxValueWithIndex = pair;
+                wavesWithMaxValue = wavesForPeriod;
+            }
+        }
+
+        double toMaxDuration = getInSecondsDurationBySamples(maxValueWithIndex.second - 1);
+        double fromMaxDuration = getInSecondsDurationBySamples(wavesWithMaxValue.size() - 1 - maxValueWithIndex.second);
+
+        return Pair.create(toMaxDuration, fromMaxDuration);
+    }
+
+
+    public List<Pair<Integer, Integer>> getPeriodsBetweenSounds(List<Pair<Integer, Integer>> periodsOfSound) {
+        List<Pair<Integer, Integer>> nonPeristalticPeriods = new ArrayList<>();
+
+        int start = 0;
+        int end;
+
+        for (int i = 0; i < periodsOfSound.size(); i++) {
+            if (periodsOfSound.get(i).first == 0) {
+                start = periodsOfSound.get(i).second;
+                continue;
+            }
+
+            end = periodsOfSound.get(i).first;
+            nonPeristalticPeriods.add(Pair.create(start, end));
+
+            start = periodsOfSound.get(i).second;
+            if (i == periodsOfSound.size() - 1 && start < singleChannelData.length - 1) {
+                end = singleChannelData.length - 1;
+                nonPeristalticPeriods.add(Pair.create(start, end));
+            }
+        }
+        return nonPeristalticPeriods;
+
+    }
 
 }
