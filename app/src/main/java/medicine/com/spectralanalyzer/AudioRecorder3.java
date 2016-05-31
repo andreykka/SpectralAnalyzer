@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.*;
 import android.os.*;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.*;
@@ -78,7 +79,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         Bitmap bitmap = Bitmap.createBitmap(512, 400, Bitmap.Config.ARGB_8888);
         canvas = new Canvas(bitmap);
         paint = new Paint();
-        paint.setColor(Color.GREEN);
+        paint.setColor(ContextCompat.getColor(this, R.color.colorAccent));
 
         imageView.setImageBitmap(bitmap);
 

@@ -41,7 +41,6 @@ public class ChartActivity extends FragmentActivity {
 
     }
 
-
     public void setData(ProcessorResult... datas) {
         int i = 0;
 

@@ -19,14 +19,14 @@ public class AudioProcessor {
     private static final String TAG = AudioProcessor.class.getSimpleName();
 
     /**
-     * In seconds value, indicate allowed length of silent inside sound
+     *10 In seconds value, indicate allowed length of silent inside sound
      */
-    private static double ALLOWED_SILENT_RATIO = 0.5;
+    private static float ALLOWED_SILENT_RATIO = 0.5f;
 
     /**
      * Minimal value of silence.
      */
-    private static int SILENT = 2;
+    private static int SILENT = 0;
 
     private Wave wave;
 
@@ -38,7 +38,7 @@ public class AudioProcessor {
     private int sampleRate;
 
     /**
-     * Step to navigating = 1 millisecond
+     *10 Step to navigating = 1 millisecond
      */
     private int period;
 
@@ -47,6 +47,11 @@ public class AudioProcessor {
         singleChannelData = getSingleChannelData(wave);
         sampleRate = wave.getWaveHeader().getSampleRate();
         period = sampleRate / 1000; // 44100/1000 = 1 ms
+    }
+
+    public static void setUpConfiguration(float allowedSilentRatio, int silentValue) {
+        ALLOWED_SILENT_RATIO = allowedSilentRatio;
+        SILENT = silentValue;
     }
 
     private short[] getSingleChannelData(Wave wave) {
@@ -69,7 +74,7 @@ public class AudioProcessor {
         return wave;
     }
 
-    public static void setAllowedSilentDuration(double allowedSilentRatio) {
+    public static void setAllowedSilentDuration(float allowedSilentRatio) {
         ALLOWED_SILENT_RATIO = allowedSilentRatio;
     }
 
@@ -90,7 +95,7 @@ public class AudioProcessor {
         ShortBuffer buff = ShortBuffer.allocate(singleChannelData.length / 2);
 
         int silenceCounter = 0;
-        int allowedSilenceLength = 4; // ms
+        int allowedSilenceLength = 4; // milliseconds
 
         for (int i = 0; i < singleChannelData.length; i += period) {
             if (singleChannelData[i] > SILENT || singleChannelData[i] < -SILENT) {
@@ -202,22 +207,22 @@ public class AudioProcessor {
         // 2
         processorResult.setAvrgWaveDuration(getAvrgDurationByPeriods(periodsOfSound));
         // 3 max + max + ... / count
-        processorResult.setAvrgMaxAmplitudePeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second);
+        processorResult.setAvrgMaxAmplitudePeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second / Short.MAX_VALUE);
 
         // 4 ???
         Pair<Integer, Double> maxAndAvrgMaxNonPeristalticPeriod = getMaxAndAvrgMaxAmplitude(periodsBetweenSounds);
         // 5
-        processorResult.setMaxReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first);
+        processorResult.setMaxReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / Short.MAX_VALUE);
 
         // 6
-        processorResult.setAvrgReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second);
+        processorResult.setAvrgReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / Short.MAX_VALUE);
         Pair<Double, Double> durationToMaxAndFromMax = calculateDurationToMaxAndFromMax(periodsOfSound);
 
         // 7
         processorResult.setAvrgAmplitudeIncreasingTime(durationToMaxAndFromMax.first);
 
         // 8
-        processorResult.setAvrgAmplitudeDecreasingTime(durationToMaxAndFromMax.second);
+        processorResult.setAvrgAmplitudeDecreasingTime(durationToMaxAndFromMax.second / Short.MAX_VALUE);
 
         return processorResult;
     }
@@ -312,7 +317,7 @@ public class AudioProcessor {
         List<Pair<Integer, Integer>> nonPeristalticPeriods = new ArrayList<>();
 
         int start = 0;
-        int end = 0;
+        int end;
 
         for (int i = 0; i < periodsOfSound.size(); i++) {
             if (periodsOfSound.get(i).first == 0) {

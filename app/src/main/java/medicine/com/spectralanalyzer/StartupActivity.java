@@ -2,13 +2,18 @@ package medicine.com.spectralanalyzer;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import com.musicg.wave.Wave;
+import medicine.com.spectralanalyzer.pojo.PreferenceConstants;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 import org.joda.time.DateTime;
 
@@ -18,6 +23,7 @@ import java.util.List;
 
 import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
 import static medicine.com.spectralanalyzer.ActivityConstants.PATH_NAME;
+import static medicine.com.spectralanalyzer.pojo.PreferenceConstants.*;
 
 public class StartupActivity extends Activity {
 
@@ -49,6 +55,8 @@ public class StartupActivity extends Activity {
 
         initializeSessionPath();
 
+        PreferenceManager.setDefaultValues(this, R.xml.audio_processor_configuration, false);
+
         btnRecord1 = (Button) findViewById(R.id.btnStartRecord1);
         btnRecord2 = (Button) findViewById(R.id.btnStartRecord2);
         btnRecord3 = (Button) findViewById(R.id.btnStartRecord3);
@@ -60,6 +68,31 @@ public class StartupActivity extends Activity {
         checkBox3 = (CheckBox) findViewById(R.id.checkBoxStatusRecord3);
         checkBox4 = (CheckBox) findViewById(R.id.checkBoxStatusRecord4);
         checkBox5 = (CheckBox) findViewById(R.id.checkBoxStatusRecord5);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        int itemId = item.getItemId();
+        switch (itemId) {
+            case R.id.settings_item: {
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        }
+        return true;
+    }
+
+    private void setUpAudioProcessorConfiguration() {
+        SharedPreferences audioProcessorPreferences = getSharedPreferences(AUDIO_PROCESSOR_CONFIGURATION, MODE_PRIVATE);
+        float silentDuration = audioProcessorPreferences.getFloat(SILENCE_DURATION, DEFAULT_SILENCE_DURATION);
+        int noiseValue = audioProcessorPreferences.getInt(NOISE_VALUE, DEFAULT_NOISE_VALUE);
+        AudioProcessor.setUpConfiguration(silentDuration, noiseValue);
     }
 
     public void handleRecordAction(View view) {
@@ -79,6 +112,9 @@ public class StartupActivity extends Activity {
         File dir = new File(sessionPath);
         File[] files = dir.listFiles();
 
+        // refresh configuration of AudioProcessor
+        setUpAudioProcessorConfiguration();
+
         List<ProcessorResult> resultList = new ArrayList<>();
 
         for (File file : files) {
@@ -88,6 +124,8 @@ public class StartupActivity extends Activity {
                 audioProcessor = null;
             }
         }
+
+        int size = resultList.size();
 
     }
 
