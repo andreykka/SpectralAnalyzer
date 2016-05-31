@@ -24,7 +24,7 @@
         <RadioGroup
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:layout_weight="1"
             android:orientation="horizontal">
 
             <RadioButton
@@ -60,15 +60,15 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="@string/recording_time"
             android:id="@+id/textView2"
-            android:layout_weight="3" />
+            android:layout_weight="1" android:layout_gravity="center_vertical"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/start_point_recording_time"
-            android:id="@+id/timeText"
-            android:layout_weight="8" />
+        <Chronometer
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/chronometer"
+                android:layout_weight="4"
+                android:textSize="18dp"
+                android:text="recording_time"/>
 
     </LinearLayout>
 

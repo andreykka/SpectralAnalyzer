@@ -7,16 +7,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.media.*;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.os.*;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.RadioButton;
-import android.widget.TextView;
+import android.widget.*;
 import ca.uol.aig.fftpack.RealDoubleFFT;
 import org.joda.time.DateTime;
 
@@ -47,7 +41,6 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
     private RealDoubleFFT transformer;
 
     private Button startStopButton;
-    private TextView timeText;
     private RadioButton radioButton8000;
     private RadioButton radioButton22050;
 
@@ -62,7 +55,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
     private AudioRecord audioRecord;
     private AudioTrack track;
 
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private Chronometer chronometer;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,7 +68,8 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         radioButton22050 = (RadioButton) this.findViewById(R.id.radioButton22050);
         selectAppropriateSampleRateRadioButton();
 
-        timeText = (TextView) findViewById(R.id.timeText);
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
+        chronometer.setBase(SystemClock.elapsedRealtime());
 
         startStopButton.setOnClickListener(this);
         transformer = new RealDoubleFFT(blockSize);
@@ -372,29 +366,6 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         out.write(header, 0, 44);
     }
 
-    private Runnable updateTimerThread = new Runnable() {
-        int min = 0;
-        int sec = 0;
-        int ms = 0;
-        int PERIOD = 100;
-
-        @Override
-        public void run() {
-            ms += PERIOD + 10;
-            if (ms >= 1000) {
-                ms = 0;
-                sec++;
-                if (sec >= 60) {
-                    sec = 0;
-                    min++;
-                }
-            }
-            String time = (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
-            timeText.setText(time);
-            handler.postDelayed(this, PERIOD);
-        }
-    };
-
     private void setSampleRateDisabilityStatus(boolean isEnabled) {
         radioButton8000.setEnabled(isEnabled);
         radioButton22050.setEnabled(isEnabled);
@@ -406,9 +377,9 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         startStopButton.setText(R.string.stop_recording);
         // disallow any updates after start recording
         setSampleRateDisabilityStatus(false);
-        handler.post(updateTimerThread);
         recordTask = new RecordAudio();
         recordTask.execute();
+        chronometer.start();
     }
 
     private void setUpInterruptRecordingConfiguration() {
@@ -416,7 +387,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         startStopButton.setText(R.string.start_recording);
         setSampleRateDisabilityStatus(true);
         recordTask.cancel(true);
-        handler.removeCallbacks(updateTimerThread);
+        chronometer.stop();
     }
 
     public void onRadioButtonSelect(View v) {
