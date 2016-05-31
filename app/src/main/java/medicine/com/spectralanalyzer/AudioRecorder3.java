@@ -32,7 +32,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
     private static final String AUDIO_RECORDER_TEMP_FILE = "record_temp.raw";
 
     private static final int SAMPLE_RATE_8000 = 8000;
-    private static final int SAMPLE_RATE_44100 = 44100;
+    private static final int SAMPLE_RATE_22050 = 22050;
 
     private static int RECORDER_SAMPLE_RATE = SAMPLE_RATE_8000;
 
@@ -41,6 +41,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
     private int recorderBufferSize;
     private int trackerBufferSize;
+
     private int blockSize = 256;
 
     private RealDoubleFFT transformer;
@@ -48,7 +49,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
     private Button startStopButton;
     private TextView timeText;
     private RadioButton radioButton8000;
-    private RadioButton radioButton44100;
+    private RadioButton radioButton22050;
 
     private ImageView imageView;
     private Canvas canvas;
@@ -71,7 +72,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         startStopButton = (Button) this.findViewById(R.id.StartStopButton);
 
         radioButton8000 = (RadioButton) this.findViewById(R.id.radioButton8000);
-        radioButton44100 = (RadioButton) this.findViewById(R.id.radioButton44100);
+        radioButton22050 = (RadioButton) this.findViewById(R.id.radioButton22050);
         selectAppropriateSampleRateRadioButton();
 
         timeText = (TextView) findViewById(R.id.timeText);
@@ -95,22 +96,13 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
             setResult(RESULT_CANCELED, resultIntent);
             finish();
         }
-
-        recorderBufferSize = AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE,
-                AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT);
-
-        trackerBufferSize = AudioTrack.getMinBufferSize(RECORDER_SAMPLE_RATE,
-                AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT);
-
     }
 
     private void selectAppropriateSampleRateRadioButton() {
         if (RECORDER_SAMPLE_RATE == SAMPLE_RATE_8000) {
             radioButton8000.setChecked(true);
         } else {
-            radioButton44100.setChecked(true);
+            radioButton22050.setChecked(true);
         }
     }
 
@@ -119,6 +111,14 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         @Override
         protected Void doInBackground(Void... arg0) {
             try {
+                recorderBufferSize = AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE,
+                        AudioFormat.CHANNEL_IN_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT);
+
+                trackerBufferSize = AudioTrack.getMinBufferSize(RECORDER_SAMPLE_RATE,
+                        AudioFormat.CHANNEL_OUT_MONO,
+                        AudioFormat.ENCODING_PCM_16BIT);
+
                 audioRecord = new AudioRecord(
                         MediaRecorder.AudioSource.MIC, RECORDER_SAMPLE_RATE,
                         AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, recorderBufferSize);
@@ -136,8 +136,10 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
                 }
 
                 writeAudioDataToFile();
-                track.stop();
-                track.release();
+                if (track != null && track.getState() == AudioTrack.STATE_INITIALIZED) {
+                    track.stop();
+                    track.release();
+                }
 
             } catch (Throwable t) {
                 t.printStackTrace();
@@ -148,17 +150,20 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
         @Override
         protected void onProgressUpdate(double[]... toTransform) {
-            canvas.drawColor(Color.BLACK);
+            canvas.drawColor(Color.argb(100, 243, 243, 243));
 
-            int i1 = 400;
+            int high = 400;
 
             int scale = 2;
+            int downy, x;
+
             for (int i = 0, j = 1; i < toTransform[0].length; i++, j += scale) {
                 for (int k = 0; k < scale; k++) {
-                    int x = j + k;
-                    int downy = (int) (i1 - (toTransform[0][i] * 400));
+                    x = j + k;
+                    downy = (int) (high - (toTransform[0][i] * 200));
+                    downy = downy > high ? high : downy;
 
-                    canvas.drawLine(x, downy, x, i1, paint);
+                    canvas.drawLine(x, downy, x, high, paint);
                 }
             }
 
@@ -392,7 +397,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
     private void setSampleRateDisabilityStatus(boolean isEnabled) {
         radioButton8000.setEnabled(isEnabled);
-        radioButton44100.setEnabled(isEnabled);
+        radioButton22050.setEnabled(isEnabled);
 
     }
 
@@ -419,7 +424,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         if (selectedButton == radioButton8000) {
             RECORDER_SAMPLE_RATE = SAMPLE_RATE_8000;
         } else {
-            RECORDER_SAMPLE_RATE = SAMPLE_RATE_44100;
+            RECORDER_SAMPLE_RATE = SAMPLE_RATE_22050;
         }
     }
 

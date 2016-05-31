@@ -39,8 +39,8 @@
             <RadioButton
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/_44100_hz"
-                android:id="@+id/radioButton44100"
+                android:text="@string/_22050_hz"
+                android:id="@+id/radioButton22050"
                 android:checked="false"
                 android:layout_gravity="center_vertical"
                 android:onClick="onRadioButtonSelect" />
