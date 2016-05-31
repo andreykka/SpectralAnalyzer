@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import ca.uol.aig.fftpack.RealDoubleFFT;
 import org.joda.time.DateTime;
@@ -25,31 +26,42 @@ import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTE
 
 public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
+    private static final String LOG_TAG = AudioRecorder3.class.getSimpleName();
+
     private static final String AUDIO_RECORDER_FILE_EXT_WAV = ".wav";
     private static final String AUDIO_RECORDER_TEMP_FILE = "record_temp.raw";
 
-    private int RECORDER_SAMPLE_RATE = 44100;
-    private static final int RECORDER_BPP = 16;
+    private static final int SAMPLE_RATE_8000 = 8000;
+    private static final int SAMPLE_RATE_44100 = 44100;
 
-    private RealDoubleFFT transformer;
+    private static int RECORDER_SAMPLE_RATE = SAMPLE_RATE_8000;
+
+    private static final int RECORDER_BPP = 16;
+    private static final int BYTE_RATE = 8;
+
+    private int recorderBufferSize;
+    private int trackerBufferSize;
     private int blockSize = 256;
 
-    private Button startStopButton;
-    private boolean isRecording = false;
+    private RealDoubleFFT transformer;
 
-    private RecordAudio recordTask;
+    private Button startStopButton;
+    private TextView timeText;
+    private RadioButton radioButton8000;
+    private RadioButton radioButton44100;
 
     private ImageView imageView;
     private Canvas canvas;
     private Paint paint;
-    private String sessionPath;
-    private int recorderBufferSize;
-    private int trackerBufferSize;
 
+    private boolean isRecording = false;
+    private String sessionPath;
+
+    private RecordAudio recordTask;
     private AudioRecord audioRecord;
     private AudioTrack track;
 
-    private TextView timeText;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -57,10 +69,14 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         setContentView(R.layout.record_layout_3);
 
         startStopButton = (Button) this.findViewById(R.id.StartStopButton);
+
+        radioButton8000 = (RadioButton) this.findViewById(R.id.radioButton8000);
+        radioButton44100 = (RadioButton) this.findViewById(R.id.radioButton44100);
+        selectAppropriateSampleRateRadioButton();
+
         timeText = (TextView) findViewById(R.id.timeText);
 
         startStopButton.setOnClickListener(this);
-
         transformer = new RealDoubleFFT(blockSize);
 
         imageView = (ImageView) this.findViewById(R.id.ImageView01);
@@ -90,6 +106,14 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
     }
 
+    private void selectAppropriateSampleRateRadioButton() {
+        if (RECORDER_SAMPLE_RATE == SAMPLE_RATE_8000) {
+            radioButton8000.setChecked(true);
+        } else {
+            radioButton44100.setChecked(true);
+        }
+    }
+
     public class RecordAudio extends AsyncTask<Void, double[], Void> {
 
         @Override
@@ -111,7 +135,6 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
                     track.play();
                 }
 
-                handler.post(updateTimerThread);
                 writeAudioDataToFile();
                 track.stop();
                 track.release();
@@ -142,41 +165,18 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
             imageView.invalidate();
         }
 
-        private void writeAudioDataToFile() {
-            int byteBlockSize = blockSize * 2;
-            byte data[] = new byte[byteBlockSize];
-            double[] toTransform = new double[blockSize];
-
+        private void writeAudioDataToFile() throws IOException {
             String filename = getTempFilename();
+
             FileOutputStream os = null;
             try {
                 os = new FileOutputStream(filename);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
-
-            int read;
-
             if (null != os) {
-                while (isRecording) {
-                    read = audioRecord.read(data, 0, byteBlockSize);
-
-                    track.write(data, 0, read);
-
-                    if (AudioRecord.ERROR_INVALID_OPERATION != read) {
-                        try {
-                            os.write(data);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    for (int i = 0, j = 0; i < byteBlockSize && i < read; i += 2, j++) {
-                        toTransform[j] = (double) (data[i + 1] << 8 | data[i]) / Short.MAX_VALUE;
-                    }
-                    transformer.ft(toTransform);
-                    publishProgress(toTransform);
-                }
+                // while loop of recording
+                startRecording(os);
 
                 try {
                     os.flush();
@@ -189,6 +189,32 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
             }
         }
 
+        private void startRecording(FileOutputStream fileOutputStream) {
+            int byteBlockSize = blockSize * 2;
+            byte data[] = new byte[byteBlockSize];
+            double[] toTransform = new double[blockSize];
+
+            int read;
+            while (isRecording) {
+                read = audioRecord.read(data, 0, byteBlockSize);
+
+                track.write(data, 0, read);
+
+                if (AudioRecord.ERROR_INVALID_OPERATION != read) {
+                    try {
+                        fileOutputStream.write(data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                for (int i = 0, j = 0; i < byteBlockSize && i < read; i += 2, j++) {
+                    toTransform[j] = (double) (data[i + 1] << 8 | data[i]) / Short.MAX_VALUE;
+                }
+                transformer.ft(toTransform);
+                publishProgress(toTransform);
+            }
+        }
     }
 
     private String getFilename() {
@@ -213,22 +239,13 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
     public void onClick(View arg0) {
         if (isRecording) {
-            isRecording = false;
-            startStopButton.setText("Start");
-            recordTask.cancel(true);
+            setUpInterruptRecordingConfiguration();
         } else {
-            isRecording = true;
-            startStopButton.setText("Stop");
-            recordTask = new RecordAudio();
-            recordTask.execute();
+            setUpStartRecordingConfiguration();
         }
     }
 
-
     private void stopRecording() {
-
-        handler.removeCallbacks(updateTimerThread);
-
         if (null != audioRecord) {
             isRecording = false;
 
@@ -252,25 +269,27 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         copyWaveFile(getTempFilename(), getFilename());
         deleteTempFile();
 
-    }
-
-    private void deleteTempFile() {
-        File file = new File(getTempFilename());
-        file.delete();
-
         Intent resultIntent = new Intent();
         setResult(RESULT_OK, resultIntent);
         finish();
     }
 
+    private void deleteTempFile() {
+        File file = new File(getTempFilename());
+        boolean isDeleted = file.delete();
+        if (isDeleted) {
+            Log.i(LOG_TAG, "Temp file successfully deleted");
+        }
+    }
+
     private void copyWaveFile(String inFilename, String outFilename) {
-        FileInputStream in = null;
-        FileOutputStream out = null;
-        long totalAudioLen = 0;
-        long totalDataLen = totalAudioLen + 36;
+        FileInputStream in;
+        FileOutputStream out;
+        long totalAudioLen;
+        long totalDataLen;
         long longSampleRate = RECORDER_SAMPLE_RATE;
         int channels = 1;
-        long byteRate = RECORDER_BPP * RECORDER_SAMPLE_RATE * channels / 8;
+        long byteRate = RECORDER_BPP * RECORDER_SAMPLE_RATE * channels / BYTE_RATE;
 
         byte[] data = new byte[recorderBufferSize];
 
@@ -279,7 +298,6 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
             out = new FileOutputStream(outFilename);
             totalAudioLen = in.getChannel().size();
             totalDataLen = totalAudioLen + 36;
-
 
             WriteWaveFileHeader(out, totalAudioLen, totalDataLen,
                     longSampleRate, channels, byteRate);
@@ -296,10 +314,8 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         deleteTempFile();
     }
 
-    private void WriteWaveFileHeader(
-            FileOutputStream out, long totalAudioLen,
-            long totalDataLen, long longSampleRate, int channels,
-            long byteRate) throws IOException {
+    private void WriteWaveFileHeader( FileOutputStream out, long totalAudioLen, long totalDataLen,
+                                      long longSampleRate, int channels, long byteRate) throws IOException {
 
         byte[] header = new byte[44];
 
@@ -351,8 +367,6 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         out.write(header, 0, 44);
     }
 
-    Handler handler = new Handler(Looper.getMainLooper());
-
     private Runnable updateTimerThread = new Runnable() {
         int min = 0;
         int sec = 0;
@@ -375,5 +389,38 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
             handler.postDelayed(this, PERIOD);
         }
     };
+
+    private void setSampleRateDisabilityStatus(boolean isEnabled) {
+        radioButton8000.setEnabled(isEnabled);
+        radioButton44100.setEnabled(isEnabled);
+
+    }
+
+    private void setUpStartRecordingConfiguration() {
+        isRecording = true;
+        startStopButton.setText(R.string.stop_recording);
+        // disallow any updates after start recording
+        setSampleRateDisabilityStatus(false);
+        handler.post(updateTimerThread);
+        recordTask = new RecordAudio();
+        recordTask.execute();
+    }
+
+    private void setUpInterruptRecordingConfiguration() {
+        isRecording = false;
+        startStopButton.setText(R.string.start_recording);
+        setSampleRateDisabilityStatus(true);
+        recordTask.cancel(true);
+        handler.removeCallbacks(updateTimerThread);
+    }
+
+    public void onRadioButtonSelect(View v) {
+        RadioButton selectedButton = (RadioButton) v;
+        if (selectedButton == radioButton8000) {
+            RECORDER_SAMPLE_RATE = SAMPLE_RATE_8000;
+        } else {
+            RECORDER_SAMPLE_RATE = SAMPLE_RATE_44100;
+        }
+    }
 
 }

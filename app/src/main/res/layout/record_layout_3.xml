@@ -4,16 +4,79 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
         >
-    <TextView
-            android:layout_width="fill_parent"
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:layout_marginBottom="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="00:00:00"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/sample_rate"
+            android:id="@+id/textView"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical" />
+
+        <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_8000_hz"
+                android:id="@+id/radioButton8000"
+                android:checked="true"
+                android:layout_gravity="center_vertical"
+                android:onClick="onRadioButtonSelect" />
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_44100_hz"
+                android:id="@+id/radioButton44100"
+                android:checked="false"
+                android:layout_gravity="center_vertical"
+                android:onClick="onRadioButtonSelect" />
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/recording_time"
+            android:id="@+id/textView2"
+            android:layout_weight="3" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/start_point_recording_time"
             android:id="@+id/timeText"
-            android:layout_weight="1"/>
+            android:layout_weight="8" />
+
+    </LinearLayout>
+
     <ImageView android:id="@+id/ImageView01" android:layout_width="match_parent"
                android:layout_height="wrap_content" android:layout_weight="30">
     </ImageView>
-    <Button android:text="Start"
+
+    <Button android:text="@string/start_recording"
             android:id="@+id/StartStopButton"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" android:layout_weight="1"/>
