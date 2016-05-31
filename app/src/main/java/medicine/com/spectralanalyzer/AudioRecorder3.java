@@ -79,7 +79,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         Bitmap bitmap = Bitmap.createBitmap(512, 400, Bitmap.Config.ARGB_8888);
         canvas = new Canvas(bitmap);
         paint = new Paint();
-        paint.setColor(ContextCompat.getColor(this, R.color.colorAccent));
+        paint.setColor(ContextCompat.getColor(this, R.color.specterColor));
 
         imageView.setImageBitmap(bitmap);
 
