@@ -74,14 +74,6 @@ public class AudioProcessor {
         return wave;
     }
 
-    public static void setAllowedSilentDuration(float allowedSilentRatio) {
-        ALLOWED_SILENT_RATIO = allowedSilentRatio;
-    }
-
-    public static void setSILENT(int SILENT) {
-        AudioProcessor.SILENT = SILENT;
-    }
-
     /**
      * Finds the place in audio wave that contains sound.
      *
@@ -207,22 +199,25 @@ public class AudioProcessor {
         // 2
         processorResult.setAvrgWaveDuration(getAvrgDurationByPeriods(periodsOfSound));
         // 3 max + max + ... / count
-        processorResult.setAvrgMaxAmplitudePeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second / Short.MAX_VALUE);
+        int limit100PercentValue = Short.MAX_VALUE / 2;
+        processorResult.setAvrgMaxAmplitudePeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second / limit100PercentValue);
 
         // 4 ???
+        processorResult.setAvrgAmplitudePeristalticWaves(getAverageAmplitudeOfPeristalticWaves(periodsOfSound) / limit100PercentValue);
+
         Pair<Integer, Double> maxAndAvrgMaxNonPeristalticPeriod = getMaxAndAvrgMaxAmplitude(periodsBetweenSounds);
         // 5
-        processorResult.setMaxReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / Short.MAX_VALUE);
+        processorResult.setMaxReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / limit100PercentValue);
 
         // 6
-        processorResult.setAvrgReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / Short.MAX_VALUE);
+        processorResult.setAvrgReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / limit100PercentValue);
         Pair<Double, Double> durationToMaxAndFromMax = calculateDurationToMaxAndFromMax(periodsOfSound);
 
         // 7
         processorResult.setAvrgAmplitudeIncreasingTime(durationToMaxAndFromMax.first);
 
         // 8
-        processorResult.setAvrgAmplitudeDecreasingTime(durationToMaxAndFromMax.second / Short.MAX_VALUE);
+        processorResult.setAvrgAmplitudeDecreasingTime(durationToMaxAndFromMax.second / limit100PercentValue);
 
         return processorResult;
     }
@@ -312,7 +307,6 @@ public class AudioProcessor {
         return Pair.create(toMaxDuration, fromMaxDuration);
     }
 
-
     public List<Pair<Integer, Integer>> getPeriodsBetweenSounds(List<Pair<Integer, Integer>> periodsOfSound) {
         List<Pair<Integer, Integer>> nonPeristalticPeriods = new ArrayList<>();
 
@@ -338,4 +332,69 @@ public class AudioProcessor {
 
     }
 
+    public Double getAverageAmplitudeOfPeristalticWaves(List<Pair<Integer, Integer>> peristalticPeriods) {
+        List<List<Short>> peristalticPeriodsData = new ArrayList<>(peristalticPeriods.size());
+
+        List<Short> wavesForPeriod;
+        for (Pair<Integer, Integer> period: peristalticPeriods) {
+            wavesForPeriod = getDataForPeriod(period.first, period.second);
+            peristalticPeriodsData.add(wavesForPeriod);
+        }
+
+        // максимальні піки амплітуд всіх перестальтичних хвиль
+        List<List<Short>> limitValuesOfAmplitudes = new ArrayList<>();
+
+        for (List<Short> peristalticPeriod: peristalticPeriodsData) {
+            List<Short> limitValuesPerSinglePeriod = new ArrayList<>();
+
+            boolean isGrowsUp = false;
+
+            short limitValue = peristalticPeriod.get(0);
+            for (int i=1; i<peristalticPeriod.size(); i++) {
+                // if values grows up
+                if (peristalticPeriod.get(i) >= limitValue) {
+                    isGrowsUp = true;
+                    limitValue = peristalticPeriod.get(i);
+                } else {
+                    // when direction of wave changes, save limit value.
+                    if (isGrowsUp) {
+                        limitValuesPerSinglePeriod.add(limitValue);
+                        isGrowsUp = false;
+                    }
+                }
+            }
+            limitValuesOfAmplitudes.add(limitValuesPerSinglePeriod);
+        }
+
+        List<Double> meanSquares = new ArrayList<>();
+        for(List<Short> limitValuesOfSinglePeriod: limitValuesOfAmplitudes) {
+            double meanSquareForSinglePeriod = calculateMeanSquare(limitValuesOfSinglePeriod);
+            meanSquares.add(meanSquareForSinglePeriod);
+        }
+
+        Double sumOfMeanSquares = .0;
+        for (Double meanSquare: meanSquares) {
+            sumOfMeanSquares += meanSquare;
+        }
+
+        // mean arithmetic of all (mean square value)
+        return sumOfMeanSquares / meanSquares.size();
+
+    }
+
+    private double calculateMeanSquare(List<Short> maxAmplitudes) {
+        long sum = 0;
+        long sumOfSquares = 0;
+
+        // count of limit values
+        int n = maxAmplitudes.size();
+
+        for (Short limitValue : maxAmplitudes) {
+            sum = +limitValue;
+            sumOfSquares += limitValue * limitValue;
+        }
+        double arithmeticMean = sum / (double) n;
+
+        return sumOfSquares - Math.pow(arithmeticMean, 2) * n;
+    }
 }
