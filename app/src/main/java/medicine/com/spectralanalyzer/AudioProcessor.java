@@ -80,7 +80,7 @@ public class AudioProcessor {
      * @return List of pairs, first element indicate start sample,
      * <br>second element indicate end sample.
      */
-    public List<Pair<Integer, Integer>> getPeriodsOfSound() {
+    public List<Pair<Integer, Integer>> getPeristalticPeriods() {
         long before = System.currentTimeMillis();
         int start, end;
         List<Pair<Integer, Integer>> periods = new ArrayList<>();
@@ -129,7 +129,7 @@ public class AudioProcessor {
     }
 
     public List<Pair<Double, Double>> getInSecondPeriods() {
-        List<Pair<Integer, Integer>> periodsOfSound = getPeriodsOfSound();
+        List<Pair<Integer, Integer>> periodsOfSound = getPeristalticPeriods();
         List<Pair<Double, Double>> inSecondPeriods = new ArrayList<>(periodsOfSound.size());
         double first, second;
         for (Pair<Integer, Integer> period: periodsOfSound) {
@@ -152,6 +152,17 @@ public class AudioProcessor {
         System.arraycopy(singleChannelData, start, out, 0, length);
 
         return Arrays.asList(ArrayUtils.toObject(out));
+    }
+
+    public List<List<Short>> getDataForPeriods(List<Pair<Integer, Integer>> periods) {
+        List<List<Short>> periodsData = new ArrayList<>(periods.size());
+
+        List<Short> wavesForPeriod;
+        for (Pair<Integer, Integer> period : periods) {
+            wavesForPeriod = getDataForPeriod(period.first, period.second);
+            periodsData.add(wavesForPeriod);
+        }
+        return periodsData;
     }
 
     /**
@@ -192,39 +203,50 @@ public class AudioProcessor {
     public ProcessorResult processAudio() {
         ProcessorResult processorResult = new ProcessorResult();
 
-        List<Pair<Integer, Integer>> periodsOfSound = getPeriodsOfSound();
-        List<Pair<Integer, Integer>> periodsBetweenSounds = getPeriodsBetweenSounds(periodsOfSound);
+        List<Pair<Integer, Integer>> peristalticPeriod = getPeristalticPeriods();
+        List<Pair<Integer, Integer>> nonPeristalticPeriod = getPeriodsBetweenSounds(peristalticPeriod);
+
+        List<List<Short>> peristalticPeriodsData = getDataForPeriods(peristalticPeriod);
+
         // 1
-        processorResult.setCountWaves(periodsOfSound.size());
+        processorResult.setCountWaves(peristalticPeriod.size());
 
         // 2
-        processorResult.setAverageLengthOfPeristalticPeriod(getAverageLengthOfPeristalticPeriod(periodsOfSound));
+        processorResult.setAverageLengthOfPeristalticPeriod(getAverageLengthOfPeristalticPeriod(peristalticPeriod));
 
         // 3 max + max + ... / count
         int limit100PercentValue = Short.MAX_VALUE / 2;
-        processorResult.setAverageMaxAmplitudeOfPeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second / limit100PercentValue);
+        processorResult.setAverageMaxAmplitudeOfPeristalticWaves(
+                getAverageMaxAmplitudesOfPeriods(peristalticPeriodsData) / limit100PercentValue);
 
-        // 4 ???
-        processorResult.setAverageAmplitudeOfPeristalticWaves(getAverageAmplitudeOfPeristalticWaves(periodsOfSound) / limit100PercentValue);
+        // 4
+        processorResult.setAverageAmplitudeOfPeristalticWaves(
+                getAverageAmplitudeOfPeristalticWaves(peristalticPeriodsData) / limit100PercentValue);
 
-        Pair<Integer, Double> maxAndAvrgMaxNonPeristalticPeriod = getMaxAndAvrgMaxAmplitude(periodsBetweenSounds);
+        Pair<Integer, Double> maxAndAvrgMaxNonPeristalticPeriod = getMaxAndAvrgMaxAmplitude(nonPeristalticPeriod);
+
         // 5
         processorResult.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / limit100PercentValue);
 
-        // 6
+        // 6 ??????
         processorResult.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / limit100PercentValue);
-        Pair<Double, Double> durationToMaxAndFromMax = calculateDurationToMaxAndFromMax(periodsOfSound);
+        Pair<Double, Double> durationToMaxAndFromMax = calculateDurationToMaxAndFromMax(peristalticPeriod);
 
         // 7
-        processorResult.setAverageAmplitudeRiseTime(durationToMaxAndFromMax.first);
+        Pair<Double, Double> averageAmplitudeRiseAndReduceTime = getAverageAmplitudeRiseAndReduceTime(peristalticPeriodsData);
+        processorResult.setAverageAmplitudeRiseTime(averageAmplitudeRiseAndReduceTime.first / limit100PercentValue);
 
         // 8
-        processorResult.setAverageTimeReducingAmplitude(durationToMaxAndFromMax.second / limit100PercentValue);
+        processorResult.setAverageTimeReducingAmplitude(averageAmplitudeRiseAndReduceTime.second / limit100PercentValue);
+
+        // 9
+        processorResult.setIndexOfPeristalticWave(
+                processorResult.getAverageMaxAmplitudeOfPeristalticWaves() / processorResult.getAverageLengthOfPeristalticPeriod());
 
         return processorResult;
     }
 
-    private double getInSecondsDurationBySamples(Integer sampleCount) {
+    private double getInSecondsDurationBySamples(long sampleCount) {
         return (double) sampleCount / sampleRate;
     }
 
@@ -241,6 +263,46 @@ public class AudioProcessor {
             sampleCount += period.second - period.first;
         }
         return getInSecondsDurationBySamples(sampleCount) / (double) periods.size();
+    }
+
+    private Double getAverageMaxAmplitudesOfPeriods(List<List<Short>> periodsAmplitudes) {
+        long sumOfMaxAmplitudes = 0;
+        double countPeriods = periodsAmplitudes.size();
+
+        for (List<Short> periodAmplitudes : periodsAmplitudes) {
+            Pair<Integer, Integer> maxValueAndIndex = getMaxValueAndIndex(periodAmplitudes);
+            sumOfMaxAmplitudes += maxValueAndIndex.first;
+        }
+
+        return sumOfMaxAmplitudes / countPeriods;
+    }
+
+    /**
+     * Return pair of value that represents
+     * <p/>
+     * <b>First:</b> average amplitudes Rise time.
+     * <b>Second:</b> average amplitudes Reduce time.
+     *
+     * @param periods list of Period's data
+     * @return average amplitudes Rise and Reduce time
+     */
+    private Pair<Double, Double> getAverageAmplitudeRiseAndReduceTime(List<List<Short>> periods) {
+        long sumOfRiseSamples = 0;
+        long sumOfReduceSamples = 0;
+
+        Pair<Integer, Integer> maxValueAndIndex;
+        for (List<Short> periodData : periods) {
+            maxValueAndIndex = getMaxValueAndIndex(periodData);
+
+            sumOfRiseSamples += maxValueAndIndex.second;
+            sumOfReduceSamples += periodData.size() - sumOfRiseSamples;
+        }
+
+        double averageRiseTime = getInSecondsDurationBySamples(sumOfRiseSamples / periods.size());
+        double averageReduceTime = getInSecondsDurationBySamples(sumOfReduceSamples / periods.size());
+
+        return Pair.create(averageRiseTime, averageReduceTime);
+
     }
 
     /**
@@ -334,15 +396,7 @@ public class AudioProcessor {
 
     }
 
-    public Double getAverageAmplitudeOfPeristalticWaves(List<Pair<Integer, Integer>> peristalticPeriods) {
-        List<List<Short>> peristalticPeriodsData = new ArrayList<>(peristalticPeriods.size());
-
-        List<Short> wavesForPeriod;
-        for (Pair<Integer, Integer> period: peristalticPeriods) {
-            wavesForPeriod = getDataForPeriod(period.first, period.second);
-            peristalticPeriodsData.add(wavesForPeriod);
-        }
-
+    public Double getAverageAmplitudeOfPeristalticWaves(List<List<Short>> peristalticPeriodsData) {
         // максимальні піки амплітуд всіх перестальтичних хвиль
         List<List<Short>> limitValuesOfAmplitudes = new ArrayList<>();
 
@@ -350,9 +404,9 @@ public class AudioProcessor {
             List<Short> limitValuesPerSinglePeriod = new ArrayList<>();
 
             boolean isGrowsUp = false;
-
+            // suppose first value is limit value
             short limitValue = peristalticPeriod.get(0);
-            for (int i=1; i<peristalticPeriod.size(); i++) {
+            for (int i = 1; i < peristalticPeriod.size(); i++) {
                 // if values grows up
                 if (peristalticPeriod.get(i) >= limitValue) {
                     isGrowsUp = true;

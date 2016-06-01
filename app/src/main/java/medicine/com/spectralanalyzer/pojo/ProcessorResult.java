@@ -45,8 +45,8 @@ public class ProcessorResult implements Serializable {
      */
     private double averageTimeReducingAmplitude;
 
-
     private double indexOfPeristalticWave;
+
 
     public ProcessorResult() {
     }
