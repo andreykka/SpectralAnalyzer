@@ -196,28 +196,30 @@ public class AudioProcessor {
         List<Pair<Integer, Integer>> periodsBetweenSounds = getPeriodsBetweenSounds(periodsOfSound);
         // 1
         processorResult.setCountWaves(periodsOfSound.size());
+
         // 2
-        processorResult.setAvrgWaveDuration(getAvrgDurationByPeriods(periodsOfSound));
+        processorResult.setAverageLengthOfPeristalticPeriod(getAverageLengthOfPeristalticPeriod(periodsOfSound));
+
         // 3 max + max + ... / count
         int limit100PercentValue = Short.MAX_VALUE / 2;
-        processorResult.setAvrgMaxAmplitudePeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second / limit100PercentValue);
+        processorResult.setAverageMaxAmplitudeOfPeristalticWaves(getMaxAndAvrgMaxAmplitude(periodsOfSound).second / limit100PercentValue);
 
         // 4 ???
-        processorResult.setAvrgAmplitudePeristalticWaves(getAverageAmplitudeOfPeristalticWaves(periodsOfSound) / limit100PercentValue);
+        processorResult.setAverageAmplitudeOfPeristalticWaves(getAverageAmplitudeOfPeristalticWaves(periodsOfSound) / limit100PercentValue);
 
         Pair<Integer, Double> maxAndAvrgMaxNonPeristalticPeriod = getMaxAndAvrgMaxAmplitude(periodsBetweenSounds);
         // 5
-        processorResult.setMaxReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / limit100PercentValue);
+        processorResult.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / limit100PercentValue);
 
         // 6
-        processorResult.setAvrgReductionAmplitudeInNotPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / limit100PercentValue);
+        processorResult.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / limit100PercentValue);
         Pair<Double, Double> durationToMaxAndFromMax = calculateDurationToMaxAndFromMax(periodsOfSound);
 
         // 7
-        processorResult.setAvrgAmplitudeIncreasingTime(durationToMaxAndFromMax.first);
+        processorResult.setAverageAmplitudeRiseTime(durationToMaxAndFromMax.first);
 
         // 8
-        processorResult.setAvrgAmplitudeDecreasingTime(durationToMaxAndFromMax.second / limit100PercentValue);
+        processorResult.setAverageTimeReducingAmplitude(durationToMaxAndFromMax.second / limit100PercentValue);
 
         return processorResult;
     }
@@ -231,7 +233,7 @@ public class AudioProcessor {
      * @param periods
      * @return
      */
-    private double getAvrgDurationByPeriods(List<Pair<Integer, Integer>> periods) {
+    private double getAverageLengthOfPeristalticPeriod(List<Pair<Integer, Integer>> periods) {
         int sampleCount = 0;
 
         for (Pair<Integer, Integer> period: periods) {
@@ -377,7 +379,7 @@ public class AudioProcessor {
             sumOfMeanSquares += meanSquare;
         }
 
-        // mean arithmetic of all (mean square value)
+        // mean arithmetic of all (mean square values)
         return sumOfMeanSquares / meanSquares.size();
 
     }

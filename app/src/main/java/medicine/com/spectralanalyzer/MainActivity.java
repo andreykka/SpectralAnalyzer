@@ -66,25 +66,25 @@ public class MainActivity extends FragmentActivity {
 
     public void showChart(View v) {
         ProcessorResult processorResult1 = new ProcessorResult();
-        processorResult1.setAvrgWaveDuration(5);
-        processorResult1.setAvrgMaxAmplitudePeristalticWaves(50);
-        processorResult1.setAvrgAmplitudePeristalticWaves(50);
-        processorResult1.setAvrgAmplitudeDecreasingTime(12.0);
-        processorResult1.setAvrgAmplitudeIncreasingTime(25.2);
-        processorResult1.setAvrgReductionAmplitudeInNotPeristalticPeriod(15);
-        processorResult1.setMaxReductionAmplitudeInNotPeristalticPeriod(50.27);
-        processorResult1.setAvrgIndexOfPeristalticWave(1.9);
+        processorResult1.setAverageLengthOfPeristalticPeriod(5);
+        processorResult1.setAverageMaxAmplitudeOfPeristalticWaves(50);
+        processorResult1.setAverageAmplitudeOfPeristalticWaves(50);
+        processorResult1.setAverageTimeReducingAmplitude(12.0);
+        processorResult1.setAverageAmplitudeRiseTime(25.2);
+        processorResult1.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(15);
+        processorResult1.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(50.27);
+        processorResult1.setIndexOfPeristalticWave(1.9);
         processorResult1.setCountWaves(25);
 
         ProcessorResult processorResult2 = new ProcessorResult();
-        processorResult2.setAvrgWaveDuration(10);
-        processorResult2.setAvrgMaxAmplitudePeristalticWaves(80);
-        processorResult2.setAvrgAmplitudePeristalticWaves(70);
-        processorResult2.setAvrgAmplitudeDecreasingTime(20);
-        processorResult2.setAvrgAmplitudeIncreasingTime(35.3);
-        processorResult2.setAvrgReductionAmplitudeInNotPeristalticPeriod(20);
-        processorResult2.setMaxReductionAmplitudeInNotPeristalticPeriod(59.2);
-        processorResult2.setAvrgIndexOfPeristalticWave(3.98);
+        processorResult2.setAverageLengthOfPeristalticPeriod(10);
+        processorResult2.setAverageMaxAmplitudeOfPeristalticWaves(80);
+        processorResult2.setAverageAmplitudeOfPeristalticWaves(70);
+        processorResult2.setAverageTimeReducingAmplitude(20);
+        processorResult2.setAverageAmplitudeRiseTime(35.3);
+        processorResult2.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(20);
+        processorResult2.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(59.2);
+        processorResult2.setIndexOfPeristalticWave(3.98);
         processorResult2.setCountWaves(35);
 
 
