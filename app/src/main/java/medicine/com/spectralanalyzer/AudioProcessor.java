@@ -28,7 +28,6 @@ public class AudioProcessor {
      */
     private static int SILENT = 0;
 
-    private Wave wave;
 
     private short[] singleChannelData;
 
@@ -43,7 +42,6 @@ public class AudioProcessor {
     private int period;
 
     public AudioProcessor(Wave wave) {
-        this.wave = wave;
         singleChannelData = getSingleChannelData(wave);
         sampleRate = wave.getWaveHeader().getSampleRate();
         period = sampleRate / 1000; // 44100/1000 = 1 ms
@@ -68,10 +66,6 @@ public class AudioProcessor {
         }
 
         return singleWayChannel;
-    }
-
-    public Wave getWave() {
-        return wave;
     }
 
     /**
@@ -154,7 +148,7 @@ public class AudioProcessor {
         return Arrays.asList(ArrayUtils.toObject(out));
     }
 
-    public List<List<Short>> getDataForPeriods(List<Pair<Integer, Integer>> periods) {
+    public List<List<Short>> getDataForPeristalticPeriods(List<Pair<Integer, Integer>> periods) {
         List<List<Short>> periodsData = new ArrayList<>(periods.size());
 
         List<Short> wavesForPeriod;
@@ -163,6 +157,17 @@ public class AudioProcessor {
             periodsData.add(wavesForPeriod);
         }
         return periodsData;
+    }
+
+    public List<Short> getDataForNonPeristalticPeriods(List<Pair<Integer, Integer>> periods) {
+        List<Short> nonPeristalticPeriod = new ArrayList<>();
+
+        List<Short> wavesForPeriod;
+        for (Pair<Integer, Integer> period : periods) {
+            wavesForPeriod = getDataForPeriod(period.first, period.second);
+            nonPeristalticPeriod.addAll(wavesForPeriod);
+        }
+        return nonPeristalticPeriod;
     }
 
     /**
@@ -204,9 +209,10 @@ public class AudioProcessor {
         ProcessorResult processorResult = new ProcessorResult();
 
         List<Pair<Integer, Integer>> peristalticPeriod = getPeristalticPeriods();
-        List<Pair<Integer, Integer>> nonPeristalticPeriod = getPeriodsBetweenSounds(peristalticPeriod);
+        List<Pair<Integer, Integer>> nonPeristalticPeriod = getNonPeristalticPeriod(peristalticPeriod);
 
-        List<List<Short>> peristalticPeriodsData = getDataForPeriods(peristalticPeriod);
+        List<List<Short>> peristalticPeriodsData = getDataForPeristalticPeriods(peristalticPeriod);
+        List<Short> nonPeristalticPeriodData = getDataForNonPeristalticPeriods(nonPeristalticPeriod);
 
         // 1
         processorResult.setCountWaves(peristalticPeriod.size());
@@ -223,14 +229,15 @@ public class AudioProcessor {
         processorResult.setAverageAmplitudeOfPeristalticWaves(
                 getAverageAmplitudeOfPeristalticWaves(peristalticPeriodsData) / limit100PercentValue);
 
-        Pair<Integer, Double> maxAndAvrgMaxNonPeristalticPeriod = getMaxAndAvrgMaxAmplitude(nonPeristalticPeriod);
-
         // 5
-        processorResult.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.first / limit100PercentValue);
+        // IMPORTANT COULD BE REPLACED INTO SINGLE CALCULATION WITH
+        // 6. AverageAmplitudeContractionsDuringNonPeristalticPeriod
+        processorResult.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(
+                getMaxAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue);
 
-        // 6 ??????
-        processorResult.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(maxAndAvrgMaxNonPeristalticPeriod.second / limit100PercentValue);
-        Pair<Double, Double> durationToMaxAndFromMax = calculateDurationToMaxAndFromMax(peristalticPeriod);
+        // 6 mean square of non peristaltic period
+        processorResult.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(
+                getAverageAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue);
 
         // 7
         Pair<Double, Double> averageAmplitudeRiseAndReduceTime = getAverageAmplitudeRiseAndReduceTime(peristalticPeriodsData);
@@ -252,17 +259,18 @@ public class AudioProcessor {
 
     /**
      * Get in seconds duration of peristaltic period
-     * @param periods
-     * @return
+     *
+     * @param peristalticPeriods peristaltic periods.
+     * @return average length of all peristaltic waves.
      */
-    private double getAverageLengthOfPeristalticPeriod(List<Pair<Integer, Integer>> periods) {
+    private double getAverageLengthOfPeristalticPeriod(List<Pair<Integer, Integer>> peristalticPeriods) {
         int sampleCount = 0;
 
-        for (Pair<Integer, Integer> period: periods) {
+        for (Pair<Integer, Integer> period : peristalticPeriods) {
             // calculate duration of each wave
             sampleCount += period.second - period.first;
         }
-        return getInSecondsDurationBySamples(sampleCount) / (double) periods.size();
+        return getInSecondsDurationBySamples(sampleCount) / (double) peristalticPeriods.size();
     }
 
     private Double getAverageMaxAmplitudesOfPeriods(List<List<Short>> periodsAmplitudes) {
@@ -306,88 +314,28 @@ public class AudioProcessor {
     }
 
     /**
-     * Returns pair of values
-     * <br> First - pair of [Max value] and [Index]
-     * <br> Second - Average of max values
+     * Find the non peristaltic period based on information about peristaltic period location.
      *
-     * @param periods list of periods.
-     * @return Pair of max and average max values.
+     * @param peristalticPeriod peristaltic period.
+     * @return non peristaltic periods.
      */
-    private Pair<Integer, Double> getMaxAndAvrgMaxAmplitude(List<Pair<Integer, Integer>> periods) {
-        List<Integer> maxAmplitudes = new ArrayList<>(periods.size());
-
-        List<Short> wavesForPeriod;
-        for (Pair<Integer, Integer> period: periods) {
-            wavesForPeriod = getDataForPeriod(period.first, period.second);
-            Pair<Integer, Integer> maxValueAndIndex = getMaxValueAndIndex(wavesForPeriod);
-
-            maxAmplitudes.add(maxValueAndIndex.first);
-        }
-
-        int sumOfMaxAmplitudeValues = 0;
-        int max = 0;
-
-        for (Integer amplitude : maxAmplitudes) {
-            if (max > amplitude) {
-                max = amplitude;
-            }
-            sumOfMaxAmplitudeValues += amplitude;
-        }
-
-        double avrgMax = (double) sumOfMaxAmplitudeValues / (double) periods.size();
-
-        return Pair.create(max, avrgMax);
-    }
-
-
-    /**
-     * Get Pair of values that indicates.
-     * <br>First - duration to max element.
-     * <br>Second - duration from max element to the end.
-     *
-     * @param periods
-     * @return
-     */
-    private Pair<Double, Double> calculateDurationToMaxAndFromMax(List<Pair<Integer, Integer>> periods) {
-        List<Short> wavesWithMaxValue = new ArrayList<>();
-        Pair<Integer, Integer> maxValueWithIndex = Pair.create(0, 0);
-
-        int max = 0;
-
-        List<Short> wavesForPeriod;
-        for (Pair<Integer, Integer> period : periods) {
-            wavesForPeriod = getDataForPeriod(period.first, period.second);
-            Pair<Integer, Integer> pair = getMaxValueAndIndex(wavesForPeriod);
-            if (pair.first > max) {
-                max = pair.first;
-                maxValueWithIndex = pair;
-                wavesWithMaxValue = wavesForPeriod;
-            }
-        }
-
-        double toMaxDuration = getInSecondsDurationBySamples(maxValueWithIndex.second - 1);
-        double fromMaxDuration = getInSecondsDurationBySamples(wavesWithMaxValue.size() - 1 - maxValueWithIndex.second);
-
-        return Pair.create(toMaxDuration, fromMaxDuration);
-    }
-
-    public List<Pair<Integer, Integer>> getPeriodsBetweenSounds(List<Pair<Integer, Integer>> periodsOfSound) {
+    public List<Pair<Integer, Integer>> getNonPeristalticPeriod(List<Pair<Integer, Integer>> peristalticPeriod) {
         List<Pair<Integer, Integer>> nonPeristalticPeriods = new ArrayList<>();
 
         int start = 0;
         int end;
 
-        for (int i = 0; i < periodsOfSound.size(); i++) {
-            if (periodsOfSound.get(i).first == 0) {
-                start = periodsOfSound.get(i).second;
+        for (int i = 0; i < peristalticPeriod.size(); i++) {
+            if (peristalticPeriod.get(i).first == 0) {
+                start = peristalticPeriod.get(i).second;
                 continue;
             }
 
-            end = periodsOfSound.get(i).first;
+            end = peristalticPeriod.get(i).first;
             nonPeristalticPeriods.add(Pair.create(start, end));
 
-            start = periodsOfSound.get(i).second;
-            if (i == periodsOfSound.size() - 1 && start < singleChannelData.length - 1) {
+            start = peristalticPeriod.get(i).second;
+            if (i == peristalticPeriod.size() - 1 && start < singleChannelData.length - 1) {
                 end = singleChannelData.length - 1;
                 nonPeristalticPeriods.add(Pair.create(start, end));
             }
@@ -401,25 +349,7 @@ public class AudioProcessor {
         List<List<Short>> limitValuesOfAmplitudes = new ArrayList<>();
 
         for (List<Short> peristalticPeriod: peristalticPeriodsData) {
-            List<Short> limitValuesPerSinglePeriod = new ArrayList<>();
-
-            boolean isGrowsUp = false;
-            // suppose first value is limit value
-            short limitValue = peristalticPeriod.get(0);
-            for (int i = 1; i < peristalticPeriod.size(); i++) {
-                // if values grows up
-                if (peristalticPeriod.get(i) >= limitValue) {
-                    isGrowsUp = true;
-                    limitValue = peristalticPeriod.get(i);
-                } else {
-                    // when direction of wave changes, save limit value.
-                    if (isGrowsUp) {
-                        limitValuesPerSinglePeriod.add(limitValue);
-                        isGrowsUp = false;
-                    }
-                }
-            }
-            limitValuesOfAmplitudes.add(limitValuesPerSinglePeriod);
+            limitValuesOfAmplitudes.add(getLimitValuesPerSinglePeriod(peristalticPeriod));
         }
 
         List<Double> meanSquares = new ArrayList<>();
@@ -438,6 +368,57 @@ public class AudioProcessor {
 
     }
 
+    /**
+     * Get Mean Square of Non peristaltic period.
+     *
+     * @param nonPeristalticPeriodData non Peristaltic period data
+     * @return mean square of peristaltic period
+     */
+    public Double getAverageAmplitudeOfNonPeristalticWaves(List<Short> nonPeristalticPeriodData) {
+        List<Short> limitValuesNonPeristalticPeriod = getLimitValuesPerSinglePeriod(nonPeristalticPeriodData);
+        return calculateMeanSquare(limitValuesNonPeristalticPeriod);
+    }
+
+    /**
+     * Get Max Amplitude of non Peristaltic period.
+     *
+     * @param nonPeristalticPeriodData non Peristaltic period data
+     * @return mean square of non peristaltic waves
+     */
+    public Double getMaxAmplitudeOfNonPeristalticWaves(List<Short> nonPeristalticPeriodData) {
+        List<Short> limitValuesNonPeristalticPeriod = getLimitValuesPerSinglePeriod(nonPeristalticPeriodData);
+        short max = limitValuesNonPeristalticPeriod.get(0);
+
+        for (short value : limitValuesNonPeristalticPeriod) {
+            if (value >= max) {
+                max = value;
+            }
+        }
+        return (double) max;
+    }
+
+    private List<Short> getLimitValuesPerSinglePeriod(List<Short> period) {
+        List<Short> limitValuesPerSinglePeriod = new ArrayList<>();
+
+        boolean isGrowsUp = false;
+        // suppose first value is limit value
+        short limitValue = period.get(0);
+        for (int i = 1; i < period.size(); i++) {
+            // if values grows up
+            if (period.get(i) >= limitValue) {
+                isGrowsUp = true;
+                limitValue = period.get(i);
+            } else {
+                // when direction of wave changes, save limit value.
+                if (isGrowsUp) {
+                    limitValuesPerSinglePeriod.add(limitValue);
+                    isGrowsUp = false;
+                }
+            }
+        }
+        return limitValuesPerSinglePeriod;
+    }
+
     private double calculateMeanSquare(List<Short> maxAmplitudes) {
         long sum = 0;
         long sumOfSquares = 0;
@@ -453,4 +434,72 @@ public class AudioProcessor {
 
         return sumOfSquares - Math.pow(arithmeticMean, 2) * n;
     }
+
+//
+//    /**
+//     * Returns pair of values
+//     * <br> First - pair of [Max value] and [Index]
+//     * <br> Second - Average of max values
+//     *
+//     * @param periods list of periods.
+//     * @return Pair of max and average max values.
+//     */
+//    private Pair<Integer, Double> getMaxAndAvrgMaxAmplitude(List<Pair<Integer, Integer>> periods) {
+//        List<Integer> maxAmplitudes = new ArrayList<>(periods.size());
+//
+//        List<Short> wavesForPeriod;
+//        for (Pair<Integer, Integer> period: periods) {
+//            wavesForPeriod = getDataForPeriod(period.first, period.second);
+//            Pair<Integer, Integer> maxValueAndIndex = getMaxValueAndIndex(wavesForPeriod);
+//
+//            maxAmplitudes.add(maxValueAndIndex.first);
+//        }
+//
+//        int sumOfMaxAmplitudeValues = 0;
+//        int max = 0;
+//
+//        for (Integer amplitude : maxAmplitudes) {
+//            if (max > amplitude) {
+//                max = amplitude;
+//            }
+//            sumOfMaxAmplitudeValues += amplitude;
+//        }
+//
+//        double avrgMax = (double) sumOfMaxAmplitudeValues / (double) periods.size();
+//
+//        return Pair.create(max, avrgMax);
+//    }
+//
+//
+//    /**
+//     * Get Pair of values that indicates.
+//     * <br>First - duration to max element.
+//     * <br>Second - duration from max element to the end.
+//     *
+//     * @param periods
+//     * @return
+//     */
+//    private Pair<Double, Double> calculateDurationToMaxAndFromMax(List<Pair<Integer, Integer>> periods) {
+//        List<Short> wavesWithMaxValue = new ArrayList<>();
+//        Pair<Integer, Integer> maxValueWithIndex = Pair.create(0, 0);
+//
+//        int max = 0;
+//
+//        List<Short> wavesForPeriod;
+//        for (Pair<Integer, Integer> period : periods) {
+//            wavesForPeriod = getDataForPeriod(period.first, period.second);
+//            Pair<Integer, Integer> pair = getMaxValueAndIndex(wavesForPeriod);
+//            if (pair.first > max) {
+//                max = pair.first;
+//                maxValueWithIndex = pair;
+//                wavesWithMaxValue = wavesForPeriod;
+//            }
+//        }
+//
+//        double toMaxDuration = getInSecondsDurationBySamples(maxValueWithIndex.second - 1);
+//        double fromMaxDuration = getInSecondsDurationBySamples(wavesWithMaxValue.size() - 1 - maxValueWithIndex.second);
+//
+//        return Pair.create(toMaxDuration, fromMaxDuration);
+//    }
+
 }

@@ -13,7 +13,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import com.musicg.wave.Wave;
-import medicine.com.spectralanalyzer.pojo.PreferenceConstants;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 import org.joda.time.DateTime;
 
@@ -27,10 +26,9 @@ import static medicine.com.spectralanalyzer.pojo.PreferenceConstants.*;
 
 public class StartupActivity extends Activity {
 
-    private static final String DIR_NAME = "AnalyzerData";
+    private static final String PROJECT_DIR_NAME = "AnalyzerData";
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;
 
-    private AudioProcessor audioProcessor;
 
     private String sessionPath;
 
@@ -54,7 +52,6 @@ public class StartupActivity extends Activity {
         setContentView(R.layout.main_input);
 
         initializeSessionPath();
-
         PreferenceManager.setDefaultValues(this, R.xml.audio_processor_configuration, false);
 
         btnRecord1 = (Button) findViewById(R.id.btnStartRecord1);
@@ -116,12 +113,12 @@ public class StartupActivity extends Activity {
         setUpAudioProcessorConfiguration();
 
         List<ProcessorResult> resultList = new ArrayList<>();
-
+        AudioProcessor audioProcessor;
         for (File file : files) {
             if (file.exists()) {
-                audioProcessor = new AudioProcessor(new Wave(file.getAbsolutePath()));
+                Wave wave = new Wave(file.getAbsolutePath());
+                audioProcessor = new AudioProcessor(wave);
                 resultList.add(audioProcessor.processAudio());
-                audioProcessor = null;
             }
         }
 
@@ -148,12 +145,29 @@ public class StartupActivity extends Activity {
     }
 
     private void initializeSessionPath() {
-        sessionPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        sessionPath += "/" + DIR_NAME + "/" + DATE_TIME_FORMATTER.print(DateTime.now());
+        if (isExternalStorageAvailable()) {
+            sessionPath = Environment.getExternalStorageDirectory().getAbsolutePath();
+        } else {
+            sessionPath = getApplicationContext().getFilesDir().getAbsolutePath();
+        }
+
+        sessionPath += "/" + PROJECT_DIR_NAME + "/" + DATE_TIME_FORMATTER.print(DateTime.now());
 
         File f = new File(sessionPath);
         if (! f.exists()) {
             f.mkdirs();
         }
     }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageAvailable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+
+
 }
