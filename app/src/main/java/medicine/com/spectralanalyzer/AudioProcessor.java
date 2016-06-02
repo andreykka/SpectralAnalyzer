@@ -210,6 +210,10 @@ public class AudioProcessor {
 
         List<Pair<Integer, Integer>> peristalticPeriod = getPeristalticPeriods();
         List<Pair<Integer, Integer>> nonPeristalticPeriod = getNonPeristalticPeriod(peristalticPeriod);
+        if (peristalticPeriod == null ||  peristalticPeriod.size() <= 0) {
+
+            return processorResult;
+        }
 
         List<List<Short>> peristalticPeriodsData = getDataForPeristalticPeriods(peristalticPeriod);
         List<Short> nonPeristalticPeriodData = getDataForNonPeristalticPeriods(nonPeristalticPeriod);
