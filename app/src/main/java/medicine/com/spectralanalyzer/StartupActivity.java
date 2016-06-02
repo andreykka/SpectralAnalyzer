@@ -13,7 +13,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import com.musicg.wave.Wave;
-import medicine.com.spectralanalyzer.pojo.PreferenceConstants;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 import org.joda.time.DateTime;
 
@@ -27,12 +26,10 @@ import static medicine.com.spectralanalyzer.pojo.PreferenceConstants.*;
 
 public class StartupActivity extends Activity {
 
-    private static final String DIR_NAME = "AnalyzerData";
+    private static final String PROJECT_DIR_NAME = "AnalyzerData";
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;
 
-    private AudioProcessor audioProcessor;
-
-    private String sessionPath;
+    private File sessionDir;
 
     private Button btnRecord1;
     private Button btnRecord2;
@@ -54,8 +51,7 @@ public class StartupActivity extends Activity {
         setContentView(R.layout.main_input);
 
         initializeSessionPath();
-
-        PreferenceManager.setDefaultValues(this, R.xml.audio_processor_configuration, false);
+        PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
         btnRecord1 = (Button) findViewById(R.id.btnStartRecord1);
         btnRecord2 = (Button) findViewById(R.id.btnStartRecord2);
@@ -89,7 +85,7 @@ public class StartupActivity extends Activity {
     }
 
     private void setUpAudioProcessorConfiguration() {
-        SharedPreferences audioProcessorPreferences = getSharedPreferences(AUDIO_PROCESSOR_CONFIGURATION, MODE_PRIVATE);
+        SharedPreferences audioProcessorPreferences = getSharedPreferences(SETTINGS, MODE_PRIVATE);
         float silentDuration = audioProcessorPreferences.getFloat(SILENCE_DURATION, DEFAULT_SILENCE_DURATION);
         int noiseValue = audioProcessorPreferences.getInt(NOISE_VALUE, DEFAULT_NOISE_VALUE);
         AudioProcessor.setUpConfiguration(silentDuration, noiseValue);
@@ -103,25 +99,24 @@ public class StartupActivity extends Activity {
         buttonToDisable = (Button) view;
 
         Intent intent = new Intent(this, AudioRecorder3.class);
-        intent.putExtra(PATH_NAME, sessionPath);
+        intent.putExtra(PATH_NAME, sessionDir);
 
         startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
     }
 
     public void submitRequest(View view) {
-        File dir = new File(sessionPath);
-        File[] files = dir.listFiles();
+        File[] files = sessionDir.listFiles();
 
         // refresh configuration of AudioProcessor
         setUpAudioProcessorConfiguration();
 
         List<ProcessorResult> resultList = new ArrayList<>();
-
+        AudioProcessor audioProcessor;
         for (File file : files) {
             if (file.exists()) {
-                audioProcessor = new AudioProcessor(new Wave(file.getAbsolutePath()));
+                Wave wave = new Wave(file.getAbsolutePath());
+                audioProcessor = new AudioProcessor(wave);
                 resultList.add(audioProcessor.processAudio());
-                audioProcessor = null;
             }
         }
 
@@ -148,12 +143,29 @@ public class StartupActivity extends Activity {
     }
 
     private void initializeSessionPath() {
-        sessionPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        sessionPath += "/" + DIR_NAME + "/" + DATE_TIME_FORMATTER.print(DateTime.now());
+        String sessionDirName = DATE_TIME_FORMATTER.print(DateTime.now());
 
-        File f = new File(sessionPath);
-        if (! f.exists()) {
-            f.mkdirs();
+        if (isExternalStorageAvailable()) {
+            File externalStorage = Environment.getExternalStorageDirectory();
+            String externalStorageSessionDirName = PROJECT_DIR_NAME + "/" + sessionDirName;
+
+            sessionDir = new File(externalStorage, externalStorageSessionDirName);
+        } else {
+            sessionDir = new File(getFilesDir(), sessionDirName);
+        }
+
+        if (! sessionDir.exists()) {
+            sessionDir.mkdirs();
         }
     }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageAvailable() {
+/*        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }*/
+        return false;
+    }
+
 }

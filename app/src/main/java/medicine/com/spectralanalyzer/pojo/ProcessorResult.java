@@ -9,43 +9,44 @@ public class ProcessorResult implements Serializable {
     private int countWaves;
 
     /**
-     * Average peristaltic wave duration. In seconds.
+     * Average peristaltic period time duration. In seconds.
      */
-    private double avrgWaveDuration;
+    private double averageLengthOfPeristalticPeriod;
 
     /**
      * Average value of max amplitudes peristaltic waves. In %.
+     * The mean square of all max limits of peristaltic period
      */
-    private double avrgMaxAmplitudePeristalticWaves;
+    private double averageMaxAmplitudeOfPeristalticWaves;
 
     /**
      * Average amplitude of peristaltic waves. In %.
      */
-    private double avrgAmplitudePeristalticWaves;
+    private double averageAmplitudeOfPeristalticWaves;
 
     /**
-     * Max amplitude of reduction during between peristaltic period. In %.
-     * <br> Max amplitude value.
+     * Max amplitude of contractions during non peristaltic period. In %.
+     * <br> Max limit value of amplitudes of non peristaltic period
      */
-    private double maxReductionAmplitudeInNotPeristalticPeriod;
+    private double maxAmplitudeContractionsDuringNonPeristalticPeriod;
 
     /**
      * Average amplitude of not peristaltic waves. In %.
      */
-    private double avrgReductionAmplitudeInNotPeristalticPeriod;
+    private double averageAmplitudeContractionsDuringNonPeristalticPeriod;
 
     /**
      * Average time of increasing amplitudes. In seconds.
      */
-    private double avrgAmplitudeIncreasingTime;
+    private double averageAmplitudeRiseTime;
 
     /**
      * Average time of decreasing amplitudes. In seconds.
      */
-    private double avrgAmplitudeDecreasingTime;
+    private double averageTimeReducingAmplitude;
 
+    private double indexOfPeristalticWave;
 
-    private double avrgIndexOfPeristalticWave;
 
     public ProcessorResult() {
     }
@@ -58,67 +59,67 @@ public class ProcessorResult implements Serializable {
         this.countWaves = countWaves;
     }
 
-    public double getAvrgWaveDuration() {
-        return avrgWaveDuration;
+    public double getAverageLengthOfPeristalticPeriod() {
+        return averageLengthOfPeristalticPeriod;
     }
 
-    public void setAvrgWaveDuration(double avrgWaveDuration) {
-        this.avrgWaveDuration = avrgWaveDuration;
+    public void setAverageLengthOfPeristalticPeriod(double averageLengthOfPeristalticPeriod) {
+        this.averageLengthOfPeristalticPeriod = averageLengthOfPeristalticPeriod;
     }
 
-    public double getAvrgMaxAmplitudePeristalticWaves() {
-        return avrgMaxAmplitudePeristalticWaves;
+    public double getAverageMaxAmplitudeOfPeristalticWaves() {
+        return averageMaxAmplitudeOfPeristalticWaves;
     }
 
-    public void setAvrgMaxAmplitudePeristalticWaves(double avrgMaxAmplitudePeristalticWaves) {
-        this.avrgMaxAmplitudePeristalticWaves = avrgMaxAmplitudePeristalticWaves;
+    public void setAverageMaxAmplitudeOfPeristalticWaves(double averageMaxAmplitudeOfPeristalticWaves) {
+        this.averageMaxAmplitudeOfPeristalticWaves = averageMaxAmplitudeOfPeristalticWaves;
     }
 
-    public double getAvrgAmplitudePeristalticWaves() {
-        return avrgAmplitudePeristalticWaves;
+    public double getAverageAmplitudeOfPeristalticWaves() {
+        return averageAmplitudeOfPeristalticWaves;
     }
 
-    public void setAvrgAmplitudePeristalticWaves(double avrgAmplitudePeristalticWaves) {
-        this.avrgAmplitudePeristalticWaves = avrgAmplitudePeristalticWaves;
+    public void setAverageAmplitudeOfPeristalticWaves(double averageAmplitudeOfPeristalticWaves) {
+        this.averageAmplitudeOfPeristalticWaves = averageAmplitudeOfPeristalticWaves;
     }
 
-    public double getMaxReductionAmplitudeInNotPeristalticPeriod() {
-        return maxReductionAmplitudeInNotPeristalticPeriod;
+    public double getMaxAmplitudeContractionsDuringNonPeristalticPeriod() {
+        return maxAmplitudeContractionsDuringNonPeristalticPeriod;
     }
 
-    public void setMaxReductionAmplitudeInNotPeristalticPeriod(double maxReductionAmplitudeInNotPeristalticPeriod) {
-        this.maxReductionAmplitudeInNotPeristalticPeriod = maxReductionAmplitudeInNotPeristalticPeriod;
+    public void setMaxAmplitudeContractionsDuringNonPeristalticPeriod(double maxAmplitudeContractionsDuringNonPeristalticPeriod) {
+        this.maxAmplitudeContractionsDuringNonPeristalticPeriod = maxAmplitudeContractionsDuringNonPeristalticPeriod;
     }
 
-    public double getAvrgReductionAmplitudeInNotPeristalticPeriod() {
-        return avrgReductionAmplitudeInNotPeristalticPeriod;
+    public double getAverageAmplitudeContractionsDuringNonPeristalticPeriod() {
+        return averageAmplitudeContractionsDuringNonPeristalticPeriod;
     }
 
-    public void setAvrgReductionAmplitudeInNotPeristalticPeriod(double avrgReductionAmplitudeInNotPeristalticPeriod) {
-        this.avrgReductionAmplitudeInNotPeristalticPeriod = avrgReductionAmplitudeInNotPeristalticPeriod;
+    public void setAverageAmplitudeContractionsDuringNonPeristalticPeriod(double averageAmplitudeContractionsDuringNonPeristalticPeriod) {
+        this.averageAmplitudeContractionsDuringNonPeristalticPeriod = averageAmplitudeContractionsDuringNonPeristalticPeriod;
     }
 
-    public double getAvrgAmplitudeIncreasingTime() {
-        return avrgAmplitudeIncreasingTime;
+    public double getAverageAmplitudeRiseTime() {
+        return averageAmplitudeRiseTime;
     }
 
-    public void setAvrgAmplitudeIncreasingTime(double avrgAmplitudeIncreasingTime) {
-        this.avrgAmplitudeIncreasingTime = avrgAmplitudeIncreasingTime;
+    public void setAverageAmplitudeRiseTime(double averageAmplitudeRiseTime) {
+        this.averageAmplitudeRiseTime = averageAmplitudeRiseTime;
     }
 
-    public double getAvrgAmplitudeDecreasingTime() {
-        return avrgAmplitudeDecreasingTime;
+    public double getAverageTimeReducingAmplitude() {
+        return averageTimeReducingAmplitude;
     }
 
-    public void setAvrgAmplitudeDecreasingTime(double avrgAmplitudeDecreasingTime) {
-        this.avrgAmplitudeDecreasingTime = avrgAmplitudeDecreasingTime;
+    public void setAverageTimeReducingAmplitude(double averageTimeReducingAmplitude) {
+        this.averageTimeReducingAmplitude = averageTimeReducingAmplitude;
     }
 
-    public double getAvrgIndexOfPeristalticWave() {
-        return avrgIndexOfPeristalticWave;
+    public double getIndexOfPeristalticWave() {
+        return indexOfPeristalticWave;
     }
 
-    public void setAvrgIndexOfPeristalticWave(double avrgIndexOfPeristalticWave) {
-        this.avrgIndexOfPeristalticWave = avrgIndexOfPeristalticWave;
+    public void setIndexOfPeristalticWave(double indexOfPeristalticWave) {
+        this.indexOfPeristalticWave = indexOfPeristalticWave;
     }
 }

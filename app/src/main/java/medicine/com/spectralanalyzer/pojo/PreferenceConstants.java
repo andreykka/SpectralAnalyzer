@@ -2,7 +2,7 @@ package medicine.com.spectralanalyzer.pojo;
 
 public class PreferenceConstants {
 
-    public static final String AUDIO_PROCESSOR_CONFIGURATION = "audio_processor_configuration";
+    public static final String SETTINGS = "settings";
     public static final String SILENCE_DURATION = "silence_duration";
     public static final String NOISE_VALUE = "noise_value";
 

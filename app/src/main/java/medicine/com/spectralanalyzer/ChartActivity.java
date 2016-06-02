@@ -50,14 +50,14 @@ public class ChartActivity extends FragmentActivity {
             ArrayList<Entry> yVals = new ArrayList<>();
 
             yVals.add(new Entry((float) data.getCountWaves(), 0));
-            yVals.add(new Entry((float) data.getAvrgAmplitudeDecreasingTime(), 1));
-            yVals.add(new Entry((float) data.getAvrgAmplitudeIncreasingTime(), 2));
-            yVals.add(new Entry((float) data.getAvrgReductionAmplitudeInNotPeristalticPeriod(), 3));
-            yVals.add(new Entry((float) data.getAvrgAmplitudePeristalticWaves(), 4));
-            yVals.add(new Entry((float) data.getAvrgWaveDuration(), 5));
-            yVals.add(new Entry((float) data.getMaxReductionAmplitudeInNotPeristalticPeriod(), 6));
-            yVals.add(new Entry((float) data.getAvrgMaxAmplitudePeristalticWaves(), 7));
-            yVals.add(new Entry((float) data.getAvrgIndexOfPeristalticWave(), 8));
+            yVals.add(new Entry((float) data.getAverageTimeReducingAmplitude(), 1));
+            yVals.add(new Entry((float) data.getAverageAmplitudeRiseTime(), 2));
+            yVals.add(new Entry((float) data.getAverageAmplitudeContractionsDuringNonPeristalticPeriod(), 3));
+            yVals.add(new Entry((float) data.getAverageAmplitudeOfPeristalticWaves(), 4));
+            yVals.add(new Entry((float) data.getAverageLengthOfPeristalticPeriod(), 5));
+            yVals.add(new Entry((float) data.getMaxAmplitudeContractionsDuringNonPeristalticPeriod(), 6));
+            yVals.add(new Entry((float) data.getAverageMaxAmplitudeOfPeristalticWaves(), 7));
+            yVals.add(new Entry((float) data.getIndexOfPeristalticWave(), 8));
 
             RadarDataSet dataSet = new RadarDataSet(yVals, "Set " + ++i);
             dataSet.setColor(ColorTemplate.VORDIPLOM_COLORS[i]);
