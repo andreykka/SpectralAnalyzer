@@ -17,6 +17,7 @@ import org.joda.time.DateTime;
 
 import java.io.*;
 
+import static medicine.com.spectralanalyzer.ActivityConstants.*;
 import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
 
 public class AudioRecorder3 extends Activity implements View.OnClickListener {
@@ -50,7 +51,10 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
     private Paint paint;
 
     private boolean isRecording = false;
-    private String sessionPath;
+//    private String sessionPath;
+    private File sessionDir;
+
+//    private String tempFilename;
 
     private RecordAudio recordTask;
     private AudioRecord audioRecord;
@@ -85,7 +89,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
         Intent requestedIntent = getIntent();
         if (requestedIntent != null) {
-            sessionPath = requestedIntent.getStringExtra(ActivityConstants.PATH_NAME);
+            sessionDir = (File) requestedIntent.getSerializableExtra(PATH_NAME);
         } else {
             Intent resultIntent = new Intent();
             setResult(RESULT_CANCELED, resultIntent);
@@ -124,16 +128,18 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
 
                 if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
                     audioRecord.startRecording();
-                }
+                    if (track.getState() == AudioTrack.STATE_INITIALIZED) {
+                        track.play();
+                    }
 
-                if (track.getState() == AudioTrack.STATE_INITIALIZED) {
-                    track.play();
-                }
+                    writeAudioDataToFile();
+                    if (track != null && track.getState() == AudioTrack.STATE_INITIALIZED) {
+                        track.stop();
+                        track.release();
+                    }
 
-                writeAudioDataToFile();
-                if (track != null && track.getState() == AudioTrack.STATE_INITIALIZED) {
-                    track.stop();
-                    track.release();
+                } else {
+                    Log.e(LOG_TAG, "AudioRecord created with error State: " + audioRecord.getState());
                 }
 
             } catch (Throwable t) {
@@ -166,14 +172,8 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         }
 
         private void writeAudioDataToFile() throws IOException {
-            String filename = getTempFilename();
+            FileOutputStream os = getTempFileOutputStream();
 
-            FileOutputStream os = null;
-            try {
-                os = new FileOutputStream(filename);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
             if (null != os) {
                 // while loop of recording
                 startRecording(os);
@@ -217,24 +217,68 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         }
     }
 
-    private String getFilename() {
-        File file = new File(sessionPath);
+    private FileOutputStream getWavFileOutputSteam() {
+        String wavFileName = DATE_TIME_FORMATTER.print(DateTime.now()) + AUDIO_RECORDER_FILE_EXT_WAV;
+        FileOutputStream wavFileOutputStream = null;
 
-        if (!file.exists()) {
-            file.mkdirs();
+        try {
+            File wavFile = new File(sessionDir, wavFileName);
+            boolean isCreated = false;
+            if (! wavFile.exists()) {
+                isCreated = wavFile.createNewFile();
+            }
+            if (isCreated) {
+                wavFileOutputStream = new FileOutputStream(wavFile);
+            } else {
+                Log.e(LOG_TAG, ".WAV File Wasn't created on getWavFileOutputSteam operation");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        return file.getAbsolutePath().concat("/").concat(DATE_TIME_FORMATTER.print(DateTime.now())) + AUDIO_RECORDER_FILE_EXT_WAV;
+        return wavFileOutputStream;
     }
 
-    private String getTempFilename() {
-        File file = new File(sessionPath);
+    private FileOutputStream getTempFileOutputStream() {
+        FileOutputStream tempFileOutputStream = null;
 
-        if (!file.exists()) {
-            file.mkdirs();
+        try {
+            File tempFile = new File(sessionDir, AUDIO_RECORDER_TEMP_FILE);
+            boolean isCreated = false;
+            if (! tempFile.exists()) {
+                isCreated = tempFile.createNewFile();
+            }
+            if (isCreated) {
+                tempFileOutputStream = new FileOutputStream(tempFile);
+            } else {
+                Log.e(LOG_TAG, "Temp File Wasn't created on getTempFileOutputStream operation");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return tempFileOutputStream;
+    }
 
-        return (file.getAbsolutePath() + "/" + AUDIO_RECORDER_TEMP_FILE);
+    private FileInputStream getTempFileInputStream() {
+        FileInputStream tempFileInputStream = null;
+
+        try {
+            File tempFile = new File(sessionDir, AUDIO_RECORDER_TEMP_FILE);
+            boolean isCreated = true;
+            if (! tempFile.exists()) {
+                isCreated = tempFile.createNewFile();
+            }
+
+            if (isCreated) {
+                tempFileInputStream = new FileInputStream(tempFile);
+            } else {
+                Log.e(LOG_TAG, "Temp File Wasn't created on getTempFileInputStream operation");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return tempFileInputStream;
     }
 
     public void onClick(View arg0) {
@@ -266,7 +310,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
             track = null;
         }
 
-        copyWaveFile(getTempFilename(), getFilename());
+        copyFromTempWaveFile();
         deleteTempFile();
 
         Intent resultIntent = new Intent();
@@ -275,16 +319,21 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
     }
 
     private void deleteTempFile() {
-        File file = new File(getTempFilename());
-        boolean isDeleted = file.delete();
+        boolean isDeleted;
+
+        File tempFile = new File(sessionDir, AUDIO_RECORDER_TEMP_FILE);
+        isDeleted = tempFile.delete();
+
         if (isDeleted) {
             Log.i(LOG_TAG, "Temp file successfully deleted");
+        } else {
+            Log.i(LOG_TAG, "Temp file wasn't deleted");
         }
     }
 
-    private void copyWaveFile(String inFilename, String outFilename) {
-        FileInputStream in;
-        FileOutputStream out;
+    private void copyFromTempWaveFile() {
+        FileInputStream tempFileInputStream = getTempFileInputStream();
+        FileOutputStream wavFileOutputStream = getWavFileOutputSteam();
         long totalAudioLen;
         long totalDataLen;
         long longSampleRate = RECORDER_SAMPLE_RATE;
@@ -294,20 +343,17 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         byte[] data = new byte[recorderBufferSize];
 
         try {
-            in = new FileInputStream(inFilename);
-            out = new FileOutputStream(outFilename);
-            totalAudioLen = in.getChannel().size();
+            totalAudioLen = tempFileInputStream.getChannel().size();
             totalDataLen = totalAudioLen + 36;
 
-            WriteWaveFileHeader(out, totalAudioLen, totalDataLen,
-                    longSampleRate, channels, byteRate);
+            WriteWaveFileHeader(wavFileOutputStream, totalAudioLen, totalDataLen, longSampleRate, channels, byteRate);
 
-            while (in.read(data) != -1) {
-                out.write(data);
+            while (tempFileInputStream.read(data) != -1) {
+                wavFileOutputStream.write(data);
             }
 
-            in.close();
-            out.close();
+            tempFileInputStream.close();
+            wavFileOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
