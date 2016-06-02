@@ -44,7 +44,7 @@ public class SettingsActivity extends Activity {
         saveSettingsButton.setOnClickListener(new SavePreferencesButtonClickListener());
         resetSettingsButton.setOnClickListener(new ResetPreferencesButtonClickListener());
 
-        SharedPreferences audioProcessorSettings = getSharedPreferences(AUDIO_PROCESSOR_CONFIGURATION, MODE_PRIVATE);
+        SharedPreferences audioProcessorSettings = getSharedPreferences(SETTINGS, MODE_PRIVATE);
 
         float silenceDuration = audioProcessorSettings.getFloat(SILENCE_DURATION, DEFAULT_SILENCE_DURATION);
         int noiseValue = audioProcessorSettings.getInt(NOISE_VALUE, DEFAULT_NOISE_VALUE);
@@ -87,7 +87,7 @@ public class SettingsActivity extends Activity {
     private class SavePreferencesButtonClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            SharedPreferences.Editor edit = getSharedPreferences(AUDIO_PROCESSOR_CONFIGURATION, MODE_PRIVATE).edit();
+            SharedPreferences.Editor edit = getSharedPreferences(SETTINGS, MODE_PRIVATE).edit();
 
             float silentDuration = silenceDurationSeekBar.getProgress() / (float) SILENT_DURATION_RATIO;
             int noiseValue = noiseValueSeekBar.getProgress();
