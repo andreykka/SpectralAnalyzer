@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Preference android:key="silence_duration" android:defaultValue="0.5"/>
-    <Preference android:key="noise_value" android:defaultValue="0"/>
+    <!-- In Seconds value-->
+    <Preference android:key="min_sound_duration" android:defaultValue="0.5"/>
+    <!-- In milliseconds value -->
+    <Preference android:key="max_silent_length" android:defaultValue="4"/>
+    <!-- No units value-->
+    <Preference android:key="noise_value" android:defaultValue="2"/>
 
 </PreferenceScreen>

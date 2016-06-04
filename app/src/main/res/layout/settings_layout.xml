@@ -14,23 +14,51 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="@string/silence_duration"
+                android:text="@string/minimum_duration"
                 android:layout_weight="1"/>
         <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="@string/silence_duration_default_value"
-                android:id="@+id/silenceDurationView"/>
+                android:text="@string/sec"
+                android:id="@+id/minSoundDurationView"/>
     </LinearLayout>
     <SeekBar
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/silenceDurationSeekBar"
-            android:progress="1"
+            android:id="@+id/minSoundDurationSeekBar"
+            android:progress="2"
             android:longClickable="false"
-            android:max="20"
+            android:max="40"
             android:layout_marginTop="5dp"/>
+
+    <LinearLayout android:orientation="horizontal"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:padding="5dp"
+                  android:layout_marginBottom="0dp"
+                  android:layout_marginTop="50dp">
+
+        <TextView android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:textAppearance="?android:attr/textAppearanceLarge"
+                  android:text="@string/max_silence_length"
+                  android:layout_weight="1"/>
+
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:textAppearance="?android:attr/textAppearanceLarge"
+                  android:text="@string/ms"
+                  android:id="@+id/maxSilenceLengthView"/>
+    </LinearLayout>
+
+    <SeekBar android:layout_width="fill_parent"
+             android:layout_height="wrap_content"
+             android:id="@+id/MaxSilenceLengthSeekBar"
+             android:progress="4"
+             android:max="100"
+             android:layout_marginTop="5dp"/>
+
     <LinearLayout
             android:orientation="horizontal"
             android:layout_width="fill_parent"
@@ -46,7 +74,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="@string/noise_value_default_value"
                 android:id="@+id/noiseValueView"
                 android:layout_weight="0"/>
     </LinearLayout>

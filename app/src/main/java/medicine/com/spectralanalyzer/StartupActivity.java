@@ -22,7 +22,7 @@ import java.util.List;
 
 import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
 import static medicine.com.spectralanalyzer.ActivityConstants.PATH_NAME;
-import static medicine.com.spectralanalyzer.pojo.PreferenceConstants.*;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.*;
 
 public class StartupActivity extends Activity {
 
@@ -86,9 +86,10 @@ public class StartupActivity extends Activity {
 
     private void setUpAudioProcessorConfiguration() {
         SharedPreferences audioProcessorPreferences = getSharedPreferences(SETTINGS, MODE_PRIVATE);
-        float silentDuration = audioProcessorPreferences.getFloat(SILENCE_DURATION, DEFAULT_SILENCE_DURATION);
+        float minSoundDuration = audioProcessorPreferences.getFloat(MIN_SOUND_DURATION, DEFAULT_MIN_SOUND_DURATION);
+        int maxSilenceLength = audioProcessorPreferences.getInt(MAX_SILENT_LENGTH, DEFAULT_MAX_SILENT_LENGTH);
         int noiseValue = audioProcessorPreferences.getInt(NOISE_VALUE, DEFAULT_NOISE_VALUE);
-        AudioProcessor.setUpConfiguration(silentDuration, noiseValue);
+        AudioProcessor.setUpConfiguration(minSoundDuration, maxSilenceLength, noiseValue);
     }
 
     public void handleRecordAction(View view) {
