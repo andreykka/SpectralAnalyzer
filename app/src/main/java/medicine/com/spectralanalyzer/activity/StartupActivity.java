@@ -1,4 +1,4 @@
-package medicine.com.spectralanalyzer;
+package medicine.com.spectralanalyzer.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -13,6 +13,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import com.musicg.wave.Wave;
+import medicine.com.spectralanalyzer.AudioProcessor;
+import medicine.com.spectralanalyzer.R;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 import org.joda.time.DateTime;
 
@@ -20,8 +22,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
-import static medicine.com.spectralanalyzer.ActivityConstants.PATH_NAME;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.DATE_TIME_FORMATTER;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PATH_NAME;
 import static medicine.com.spectralanalyzer.pojo.SettingConstants.*;
 
 public class StartupActivity extends Activity {
@@ -93,13 +95,13 @@ public class StartupActivity extends Activity {
     }
 
     public void handleRecordAction(View view) {
-        if (! (view instanceof Button)) {
+        if (!(view instanceof Button)) {
             return;
         }
 
         buttonToDisable = (Button) view;
 
-        Intent intent = new Intent(this, AudioRecorder3.class);
+        Intent intent = new Intent(this, AudioRecorder.class);
         intent.putExtra(PATH_NAME, sessionDir);
 
         startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
@@ -155,17 +157,17 @@ public class StartupActivity extends Activity {
             sessionDir = new File(getFilesDir(), sessionDirName);
         }
 
-        if (! sessionDir.exists()) {
+        if (!sessionDir.exists()) {
             sessionDir.mkdirs();
         }
     }
 
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageAvailable() {
-/*        String state = Environment.getExternalStorageState();
+        String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
             return true;
-        }*/
+        }
         return false;
     }
 
