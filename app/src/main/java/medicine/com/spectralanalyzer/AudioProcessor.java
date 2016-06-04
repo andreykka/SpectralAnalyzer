@@ -7,7 +7,6 @@ import com.musicg.wave.Wave;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,14 +18,20 @@ public class AudioProcessor {
     private static final String TAG = AudioProcessor.class.getSimpleName();
 
     /**
-     *10 In seconds value, indicate allowed length of silent inside sound
+     * In seconds value, indicate minimum allowed length of sound
      */
-    private static float ALLOWED_SILENT_RATIO = 0.5f;
+
+    private static float MIN_SOUND_DURATION = 0.5f;
+
+    /**
+     * In seconds value, indicate minimum allowed length of sound
+     */
+    private static int MAX_SILENCE_LENGTH = 4;
 
     /**
      * Minimal value of silence.
      */
-    private static int SILENT = 0;
+    private static int SILENT = 2;
 
 
     private short[] singleChannelData;
@@ -47,8 +52,9 @@ public class AudioProcessor {
         period = sampleRate / 1000; // 44100/1000 = 1 ms
     }
 
-    public static void setUpConfiguration(float allowedSilentRatio, int silentValue) {
-        ALLOWED_SILENT_RATIO = allowedSilentRatio;
+    public static void setUpConfiguration(float minSoundDuration, int maxSilenceLength, int silentValue) {
+        MIN_SOUND_DURATION = minSoundDuration;
+        MAX_SILENCE_LENGTH = maxSilenceLength;
         SILENT = silentValue;
     }
 
@@ -78,30 +84,30 @@ public class AudioProcessor {
         long before = System.currentTimeMillis();
         int start, end;
         List<Pair<Integer, Integer>> periods = new ArrayList<>();
-        ShortBuffer buff = ShortBuffer.allocate(singleChannelData.length / 2);
+
+        long readData = 0;
 
         int silenceCounter = 0;
-        int allowedSilenceLength = 4; // milliseconds
 
         for (int i = 0; i < singleChannelData.length; i += period) {
             if (singleChannelData[i] > SILENT || singleChannelData[i] < -SILENT) {
-                buff.put(singleChannelData[i]);
+                readData++;
                 silenceCounter = 0;
             } else {
-                if (++silenceCounter < allowedSilenceLength) {
-                    buff.put(singleChannelData[i]);
+                if (++silenceCounter <= MAX_SILENCE_LENGTH) {
+                    readData++;
                     continue;
                 }
                 silenceCounter = 0;
                 // current i is silence
-                if (isLengthEnough(buff.position() * period)) {
+                if (isLengthEnough(readData * period)) {
                     end = i - 1;
-                    start = end - (buff.position() * period);
+                    start = (int) (end - (readData * period));
                     start = start < 0 ? 0 : start;
                     Pair<Integer, Integer> range = Pair.create(start, end);
                     periods.add(range);
                 }
-                buff = (ShortBuffer) buff.clear();
+                readData = 0;
             }
         }
         long after = System.currentTimeMillis();
@@ -112,13 +118,13 @@ public class AudioProcessor {
 
 
     /**
-     * Verify is length of audio segment bigger than specified in {@link #ALLOWED_SILENT_RATIO}
+     * Verify is length of audio segment bigger than specified in {@link #MIN_SOUND_DURATION}
      * <br>0.5 sec by default.
      *
      * @return <b>true</b> if length > 0.5sec, <b>false</b> otherwise.
      */
-    private boolean isLengthEnough(Integer sampleCount) {
-        double targetSampleCountForTime = sampleRate * ALLOWED_SILENT_RATIO;
+    private boolean isLengthEnough(Long sampleCount) {
+        double targetSampleCountForTime = sampleRate * MIN_SOUND_DURATION;
         return sampleCount > targetSampleCountForTime;
     }
 
