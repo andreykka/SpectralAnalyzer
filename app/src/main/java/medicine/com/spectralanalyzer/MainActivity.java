@@ -8,6 +8,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.Button;
@@ -18,9 +20,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import static medicine.com.spectralanalyzer.ActivityConstants.FILE_TO_PROCESS;
+import static medicine.com.spectralanalyzer.ActivityConstants.PATH_NAME;
+
 public class MainActivity extends FragmentActivity {
 
     private static final String TAG = "MainActivity";
+
+    private File audioFile;
 
     private AudioProcessor audioProcessor;
     private CustomWaveFormFragment waveformFragment;
@@ -28,6 +35,7 @@ public class MainActivity extends FragmentActivity {
 
     private Button btnZoomIn;
     private Button btnZoomOut;
+    private Button start_process_btn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,32 +44,43 @@ public class MainActivity extends FragmentActivity {
 
         btnZoomIn = (Button) findViewById(R.id.btn_zoom_in);
         btnZoomOut = (Button) findViewById(R.id.btn_zoom_out);
+        start_process_btn = (Button) findViewById(R.id.start_process_btn);
+
+        Intent requestedIntent = getIntent();
+
+        if (requestedIntent != null) {
+            audioFile = (File) requestedIntent.getSerializableExtra(FILE_TO_PROCESS);
+        } else {
+            Intent resultIntent = new Intent();
+            setResult(RESULT_CANCELED, resultIntent);
+            finish();
+        }
+        processAudioFile();
+        start_process_btn.setEnabled(true);
+
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemSelected(int featureId, MenuItem item) {
+        int itemId = item.getItemId();
+        switch (itemId) {
+            case R.id.settings_item: {
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        }
+        return true;
     }
 
     public void onBtnClick(View view) throws FileNotFoundException {
-        File audioWavFile = new File(Environment.getExternalStorageDirectory(), "Download/android_shared/file1.wav");
-
-        if (!audioWavFile.exists()) {
-            return;
-        }
-
-        audioProcessor = new AudioProcessor(new Wave(audioWavFile.getAbsolutePath()));
-
-        waveformFragment = new CustomWaveFormFragment();
-        waveformFragment.setFileName(audioWavFile.getAbsolutePath());
-
-        ProcessorResult processorResult = audioProcessor.processAudio();
-
-        List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
-
-        waveformFragment.setPeriods(periodsOfSound);
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-        fragmentTransaction.add(R.id.container, waveformFragment);
-        fragmentTransaction.commit();
-        btnZoomIn.setEnabled(true);
-        btnZoomOut.setEnabled(true);
-        Log.i(TAG, "Found " + periodsOfSound.size() + " periods of sounds");
+        processAudioFile();
     }
 
     public void showChart(View v) {
@@ -101,5 +120,31 @@ public class MainActivity extends FragmentActivity {
     public void zoomOut(View view) {
         waveformFragment.waveformZoomOut();
     }
+
+    private void processAudioFile() {
+        if (!audioFile.exists()) {
+            return;
+        }
+        audioProcessor = new AudioProcessor(new Wave(audioFile.getAbsolutePath()));
+
+        waveformFragment = new CustomWaveFormFragment();
+        waveformFragment.setFileName(audioFile.getAbsolutePath());
+
+//        ProcessorResult processorResult = audioProcessor.processAudio();
+
+        List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
+
+        waveformFragment.setPeriods(periodsOfSound);
+
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.container, waveformFragment);
+        fragmentTransaction.attach(waveformFragment);
+        fragmentTransaction.commit();
+
+        btnZoomIn.setEnabled(true);
+        btnZoomOut.setEnabled(true);
+        Log.i(TAG, "Found " + periodsOfSound.size() + " periods of sounds");
+    }
+
 
 }
