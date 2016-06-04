@@ -1,4 +1,4 @@
-package medicine.com.spectralanalyzer;
+package medicine.com.spectralanalyzer.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -16,16 +16,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import ca.uol.aig.fftpack.RealDoubleFFT;
+import medicine.com.spectralanalyzer.R;
 import org.joda.time.DateTime;
 
 import java.io.*;
 
-import static medicine.com.spectralanalyzer.ActivityConstants.*;
-import static medicine.com.spectralanalyzer.ActivityConstants.DATE_TIME_FORMATTER;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.*;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.DATE_TIME_FORMATTER;
 
-public class AudioRecorder3 extends Activity implements View.OnClickListener {
+public class AudioRecorder extends Activity implements View.OnClickListener {
 
-    private static final String LOG_TAG = AudioRecorder3.class.getSimpleName();
+    private static final String LOG_TAG = AudioRecorder.class.getSimpleName();
 
     private static final String AUDIO_RECORDER_FILE_EXT_WAV = ".wav";
     private static final String AUDIO_RECORDER_TEMP_FILE = "record_temp.raw";
@@ -68,7 +69,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.record_layout_3);
+        setContentView(R.layout.record_layout);
 
         startStopButton = (Button) this.findViewById(R.id.StartStopButton);
         processBtn = (Button) this.findViewById(R.id.ProcessBtn);
@@ -250,7 +251,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         try {
             File wavFile = new File(sessionDir, wavFileName);
             boolean isCreated = false;
-            if (! wavFile.exists()) {
+            if (!wavFile.exists()) {
                 isCreated = wavFile.createNewFile();
             }
             if (isCreated) {
@@ -272,7 +273,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         try {
             File tempFile = new File(sessionDir, AUDIO_RECORDER_TEMP_FILE);
             boolean isCreated = false;
-            if (! tempFile.exists()) {
+            if (!tempFile.exists()) {
                 isCreated = tempFile.createNewFile();
             }
             if (isCreated) {
@@ -292,7 +293,7 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         try {
             File tempFile = new File(sessionDir, AUDIO_RECORDER_TEMP_FILE);
             boolean isCreated = true;
-            if (! tempFile.exists()) {
+            if (!tempFile.exists()) {
                 isCreated = tempFile.createNewFile();
             }
 
@@ -389,8 +390,8 @@ public class AudioRecorder3 extends Activity implements View.OnClickListener {
         }
     }
 
-    private void WriteWaveFileHeader( FileOutputStream out, long totalAudioLen, long totalDataLen,
-                                      long longSampleRate, int channels, long byteRate) throws IOException {
+    private void WriteWaveFileHeader(FileOutputStream out, long totalAudioLen, long totalDataLen,
+                                     long longSampleRate, int channels, long byteRate) throws IOException {
 
         byte[] header = new byte[44];
 

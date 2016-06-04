@@ -1,4 +1,4 @@
-package medicine.com.spectralanalyzer;
+package medicine.com.spectralanalyzer.pojo;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;

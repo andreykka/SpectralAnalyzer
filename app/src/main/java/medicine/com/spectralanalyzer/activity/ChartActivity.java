@@ -1,4 +1,4 @@
-package medicine.com.spectralanalyzer;
+package medicine.com.spectralanalyzer.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,7 @@ import com.github.mikephil.charting.data.RadarData;
 import com.github.mikephil.charting.data.RadarDataSet;
 import com.github.mikephil.charting.interfaces.datasets.IRadarDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import medicine.com.spectralanalyzer.R;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
 import java.util.ArrayList;

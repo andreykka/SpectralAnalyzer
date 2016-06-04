@@ -1,4 +1,4 @@
-package medicine.com.spectralanalyzer;
+package medicine.com.spectralanalyzer.fragment;
 
 import android.graphics.Color;
 import android.util.Pair;
@@ -34,7 +34,7 @@ public class CustomWaveFormFragment extends WaveformFragment {
     protected List<Segment> getSegments() {
         List<Segment> segmentList = new ArrayList<>(periods.size());
 
-        for (Pair<Double, Double> period: periods) {
+        for (Pair<Double, Double> period : periods) {
             Segment segment = new Segment(period.first, period.second, Color.rgb(238, 23, 104));
             segmentList.add(segment);
         }

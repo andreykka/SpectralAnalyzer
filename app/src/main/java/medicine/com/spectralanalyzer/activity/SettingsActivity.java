@@ -1,4 +1,4 @@
-package medicine.com.spectralanalyzer;
+package medicine.com.spectralanalyzer.activity;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import medicine.com.spectralanalyzer.AudioProcessor;
+import medicine.com.spectralanalyzer.R;
 
 import static medicine.com.spectralanalyzer.pojo.SettingConstants.*;
 

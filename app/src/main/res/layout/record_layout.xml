@@ -3,33 +3,96 @@
               android:orientation="vertical"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
-              android:padding="20dip">
+        >
 
-    <TextView
-            android:layout_width="fill_parent"
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:layout_marginBottom="5dp" android:padding="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Recorder"
-            android:id="@+id/timeText"
-            android:layout_weight="1.0"
-            android:textSize="20dip"/>
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/sample_rate"
+            android:id="@+id/textView"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical" />
 
+        <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_8000_hz"
+                android:id="@+id/radioButton8000"
+                android:checked="true"
+                android:layout_gravity="center_vertical"
+                android:onClick="onRadioButtonSelect" />
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_22050_hz"
+                android:id="@+id/radioButton22050"
+                android:checked="false"
+                android:layout_gravity="center_vertical"
+                android:onClick="onRadioButtonSelect" />
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp" android:padding="5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="@string/recording_time"
+            android:id="@+id/textView2"
+            android:layout_weight="1" android:layout_gravity="center_vertical"/>
+
+        <Chronometer
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/chronometer"
+                android:layout_weight="6"
+                android:textSize="18dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent" android:layout_weight="30" android:paddingLeft="10dp"
+            android:paddingRight="10dp">
+        <ImageView android:id="@+id/ImageView01" android:layout_width="match_parent"
+                   android:layout_height="fill_parent" android:layout_weight="0">
+        </ImageView>
+    </LinearLayout>
     <LinearLayout
             android:orientation="horizontal"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
-
+        <Button android:text="@string/start_recording"
+                android:id="@+id/StartStopButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" android:layout_weight="1"/>
         <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/btnStart"
-                android:text="start"
-                android:layout_weight="1.0"/>
-
-        <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/btnStop"
-                android:text="stop"
-                android:layout_weight="1.0"/>
+                android:text="@string/process_btn_text"
+                android:id="@+id/ProcessBtn" android:enabled="false"/>
     </LinearLayout>
+
 </LinearLayout>

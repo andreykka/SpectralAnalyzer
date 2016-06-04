@@ -1,8 +1,7 @@
-package medicine.com.spectralanalyzer;
+package medicine.com.spectralanalyzer.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -14,14 +13,16 @@ import android.view.View;
 
 import android.widget.Button;
 import com.musicg.wave.Wave;
+import medicine.com.spectralanalyzer.AudioProcessor;
+import medicine.com.spectralanalyzer.R;
+import medicine.com.spectralanalyzer.fragment.CustomWaveFormFragment;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import static medicine.com.spectralanalyzer.ActivityConstants.FILE_TO_PROCESS;
-import static medicine.com.spectralanalyzer.ActivityConstants.PATH_NAME;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.FILE_TO_PROCESS;
 
 public class MainActivity extends FragmentActivity {
 
