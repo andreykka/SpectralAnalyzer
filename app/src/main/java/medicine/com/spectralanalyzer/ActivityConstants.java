@@ -10,4 +10,6 @@ public class ActivityConstants {
 
     public static final String PATH_NAME = "pathName";
 
+    public static final String FILE_TO_PROCESS = "fileToProcess";
+
 }
