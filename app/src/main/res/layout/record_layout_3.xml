@@ -10,7 +10,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:layout_marginBottom="5dp">
+        android:layout_marginBottom="5dp" android:padding="5dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -52,7 +52,7 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp">
+        android:layout_marginBottom="5dp" android:padding="5dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -66,19 +66,33 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/chronometer"
-                android:layout_weight="4"
-                android:textSize="18dp"
-                android:text="recording_time"/>
+                android:layout_weight="6"
+                android:textSize="18dp"/>
 
     </LinearLayout>
 
-    <ImageView android:id="@+id/ImageView01" android:layout_width="match_parent"
-               android:layout_height="wrap_content" android:layout_weight="30">
-    </ImageView>
-
-    <Button android:text="@string/start_recording"
-            android:id="@+id/StartStopButton"
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent" android:layout_weight="30" android:paddingLeft="10dp"
+            android:paddingRight="10dp">
+        <ImageView android:id="@+id/ImageView01" android:layout_width="match_parent"
+                   android:layout_height="fill_parent" android:layout_weight="0">
+        </ImageView>
+    </LinearLayout>
+    <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" android:layout_weight="1"/>
+            android:layout_height="wrap_content">
+        <Button android:text="@string/start_recording"
+                android:id="@+id/StartStopButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" android:layout_weight="1"/>
+        <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/process_btn_text"
+                android:id="@+id/ProcessBtn" android:enabled="false"/>
+    </LinearLayout>
 
 </LinearLayout>
