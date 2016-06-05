@@ -45,6 +45,7 @@
                 android:layout_alignParentTop="true"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
-                android:layout_marginRight="10dp"/>
+                android:layout_marginRight="10dp"
+                android:enabled="false"/>
     </RelativeLayout>
 </LinearLayout>

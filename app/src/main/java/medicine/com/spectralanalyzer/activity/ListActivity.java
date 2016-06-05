@@ -8,6 +8,8 @@ import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 import medicine.com.spectralanalyzer.R;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.DATE_TIME_FORMATTER;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.FILE_TO_PROCESS;
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PATH_NAME;
 
 public class ListActivity extends Activity {
@@ -33,6 +36,9 @@ public class ListActivity extends Activity {
     private List<ItemData> listViewItems;
     private ArrayAdapterItem adapter;
 
+    private Button processAudioBtn;
+    private Button addRecordBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,8 +47,8 @@ public class ListActivity extends Activity {
         initializeSessionPath();
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
-        Button addRecordBtn = (Button) findViewById(R.id.addRecordBtn);
-        Button processAudioBtn = (Button) findViewById(R.id.processAudioBtn);
+        addRecordBtn = (Button) findViewById(R.id.addRecordBtn);
+        processAudioBtn = (Button) findViewById(R.id.processAudioBtn);
 
         addRecordBtn.setOnClickListener(new AddRecordOnClickListener());
 
@@ -50,8 +56,10 @@ public class ListActivity extends Activity {
         listView = (ListView) findViewById(R.id.listView);
         adapter = new ArrayAdapterItem(this, R.layout.list_view_row_item, listViewItems);
         listView.setAdapter(adapter);
-
         listView.setVisibility(adapter.isEmpty() ? View.GONE : View.VISIBLE);
+        listView.setOnItemClickListener(new OnListViewItemClickListener());
+        refreshEnabilityOfProcessBtn();
+
     }
 
     @Override
@@ -94,6 +102,11 @@ public class ListActivity extends Activity {
         }
         adapter.notifyDataSetChanged();
         listView.setVisibility(adapter.isEmpty() ? View.GONE : View.VISIBLE);
+        refreshEnabilityOfProcessBtn();
+    }
+
+    private void refreshEnabilityOfProcessBtn() {
+        processAudioBtn.setEnabled(!adapter.isEmpty());
     }
 
     private void initializeSessionPath() {
@@ -128,13 +141,23 @@ public class ListActivity extends Activity {
     }
 
     private class AddRecordOnClickListener implements View.OnClickListener {
-
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(getApplicationContext(), AudioRecorder.class);
             intent.putExtra(PATH_NAME, sessionDir);
-
             startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
         }
     }
+
+    private class OnListViewItemClickListener implements OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            ItemData selectedItem = adapter.getItem(position);
+            File selectedFileToProcess = selectedItem.getFile();
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            intent.putExtra(FILE_TO_PROCESS, selectedFileToProcess);
+            startActivity(intent);
+        }
+    }
+
 }
