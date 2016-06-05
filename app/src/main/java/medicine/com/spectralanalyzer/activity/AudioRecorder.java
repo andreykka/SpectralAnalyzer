@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.media.*;
 import android.os.*;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -157,12 +156,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
                     }
 
                     recordAudioDataToTempFile();
-
-                    if (track != null && track.getState() == AudioTrack.STATE_INITIALIZED) {
-                        track.stop();
-                        track.release();
-                    }
-
                 } else {
                     Log.e(LOG_TAG, "AudioRecord created with error State: " + audioRecord.getState());
                 }
@@ -210,10 +203,7 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
                     e.printStackTrace();
                 }
             }
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getApplicationContext());
-            alertDialog.setTitle("Error on Temp File creating");
-            alertDialog.setCancelable(false);
-            alertDialog.setMessage("Temp File can't be created. Please check rights of application");
+            stopRecording();
         }
 
         private void startRecording(FileOutputStream fileOutputStream) {
@@ -317,6 +307,17 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     }
 
     private void stopRecording() {
+        if (null != audioRecord) {
+            isRecording = false;
+
+            int recorderState = audioRecord.getState();
+            if (recorderState == AudioRecord.STATE_INITIALIZED) {
+                audioRecord.stop();
+            }
+            audioRecord.release();
+            audioRecord = null;
+        }
+
         if (null != track) {
             int trackerState = track.getState();
             if (trackerState == AudioTrack.STATE_INITIALIZED) {
@@ -330,18 +331,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
             }
             track.release();
             track = null;
-        }
-
-
-        if (null != audioRecord) {
-            isRecording = false;
-
-            int recorderState = audioRecord.getState();
-            if (recorderState == AudioRecord.STATE_INITIALIZED) {
-                audioRecord.stop();
-            }
-            audioRecord.release();
-            audioRecord = null;
         }
 
         copyFromTempWaveFile();
@@ -463,10 +452,11 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
         startStopButton.setText(R.string.start_recording);
         setSampleRateDisabilityStatus(true);
         recordTask.cancel(true);
-        chronometer.stop();
-        stopRecording();
+//        stopRecording();
         processBtn.setEnabled(true);
         startStopButton.setEnabled(false);
+        chronometer.stop();
+
     }
 
     public void onRadioButtonSelect(View v) {
