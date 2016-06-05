@@ -12,11 +12,13 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AudioProcessor {
+
+    private static final int PERCENT_100 = 100;
+
     /**
      * Logger for AudioProcessor class
      */
     private static final String TAG = AudioProcessor.class.getSimpleName();
-    public static final int PERCENT_100 = 100;
 
     /**
      * In seconds value, indicate minimum allowed length of sound
