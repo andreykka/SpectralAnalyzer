@@ -29,5 +29,9 @@
     <string name="max_silence_length">Max Silent Length:</string>
     <string name="ms">ms</string>
     <string name="sec">sec</string>
+    <string name="addRecordText">Add Record</string>
+    <string name="start_process_text">Start Process</string>
+    <string name="item_name_here">Item name here</string>
+    <string name="no_data">No Records found. Click Add Record button</string>
 
 </resources>
