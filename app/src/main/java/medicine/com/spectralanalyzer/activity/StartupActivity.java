@@ -86,14 +86,6 @@ public class StartupActivity extends Activity {
         return true;
     }
 
-    private void setUpAudioProcessorConfiguration() {
-        SharedPreferences audioProcessorPreferences = getSharedPreferences(SETTINGS, MODE_PRIVATE);
-        float minSoundDuration = audioProcessorPreferences.getFloat(MIN_SOUND_DURATION, DEFAULT_MIN_SOUND_DURATION);
-        int maxSilenceLength = audioProcessorPreferences.getInt(MAX_SILENT_LENGTH, DEFAULT_MAX_SILENT_LENGTH);
-        int noiseValue = audioProcessorPreferences.getInt(NOISE_VALUE, DEFAULT_NOISE_VALUE);
-        AudioProcessor.setUpConfiguration(minSoundDuration, maxSilenceLength, noiseValue);
-    }
-
     public void handleRecordAction(View view) {
         if (!(view instanceof Button)) {
             return;
@@ -109,9 +101,6 @@ public class StartupActivity extends Activity {
 
     public void submitRequest(View view) {
         File[] files = sessionDir.listFiles();
-
-        // refresh configuration of AudioProcessor
-        setUpAudioProcessorConfiguration();
 
         List<ProcessorResult> resultList = new ArrayList<>();
         AudioProcessor audioProcessor;

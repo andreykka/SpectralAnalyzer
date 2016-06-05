@@ -12,6 +12,9 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AudioProcessor {
+
+    private static final int PERCENT_100 = 100;
+
     /**
      * Logger for AudioProcessor class
      */
@@ -231,30 +234,30 @@ public class AudioProcessor {
         processorResult.setAverageLengthOfPeristalticPeriod(getAverageLengthOfPeristalticPeriod(peristalticPeriod));
 
         // 3 max + max + ... / count
-        int limit100PercentValue = Short.MAX_VALUE / 2;
+        int limit100PercentValue = Short.MAX_VALUE;
         processorResult.setAverageMaxAmplitudeOfPeristalticWaves(
-                getAverageMaxAmplitudesOfPeriods(peristalticPeriodsData) / limit100PercentValue);
+                getAverageMaxAmplitudesOfPeriods(peristalticPeriodsData) / limit100PercentValue * PERCENT_100);
 
         // 4
         processorResult.setAverageAmplitudeOfPeristalticWaves(
-                getAverageAmplitudeOfPeristalticWaves(peristalticPeriodsData) / limit100PercentValue);
+                getAverageAmplitudeOfPeristalticWaves(peristalticPeriodsData) / limit100PercentValue * PERCENT_100);
 
         // 5
         // IMPORTANT COULD BE REPLACED INTO SINGLE CALCULATION WITH
         // 6. AverageAmplitudeContractionsDuringNonPeristalticPeriod
         processorResult.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(
-                getMaxAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue);
+                getMaxAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue * PERCENT_100);
 
         // 6 mean square of non peristaltic period
         processorResult.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(
-                getAverageAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue);
+                getAverageAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue * PERCENT_100);
 
         // 7
         Pair<Double, Double> averageAmplitudeRiseAndReduceTime = getAverageAmplitudeRiseAndReduceTime(peristalticPeriodsData);
-        processorResult.setAverageAmplitudeRiseTime(averageAmplitudeRiseAndReduceTime.first / limit100PercentValue);
+        processorResult.setAverageAmplitudeRiseTime(averageAmplitudeRiseAndReduceTime.first / limit100PercentValue * PERCENT_100);
 
         // 8
-        processorResult.setAverageTimeReducingAmplitude(averageAmplitudeRiseAndReduceTime.second / limit100PercentValue);
+        processorResult.setAverageTimeReducingAmplitude(averageAmplitudeRiseAndReduceTime.second / limit100PercentValue * PERCENT_100);
 
         // 9
         processorResult.setIndexOfPeristalticWave(
