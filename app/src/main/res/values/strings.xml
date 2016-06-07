@@ -34,4 +34,7 @@
     <string name="item_name_here">Item name here</string>
     <string name="no_data">No Records found. Click Add Record button</string>
 
+
+    <string name="show_transcription_item">Show transcriptions</string>
+
 </resources>

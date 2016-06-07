@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.FILE_TO_PROCESS;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PROCESS_RESULT_PARAM;
 
 public class MainActivity extends FragmentActivity {
 
@@ -37,6 +38,8 @@ public class MainActivity extends FragmentActivity {
     private Button btnZoomIn;
     private Button btnZoomOut;
     private Button start_process_btn;
+
+    private ProcessorResult processorResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,9 +61,7 @@ public class MainActivity extends FragmentActivity {
         }
         processAudioFile();
         start_process_btn.setEnabled(true);
-
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -85,33 +86,9 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void showChart(View v) {
-        ProcessorResult processorResult1 = new ProcessorResult();
-        processorResult1.setAverageLengthOfPeristalticPeriod(5);
-        processorResult1.setAverageMaxAmplitudeOfPeristalticWaves(50);
-        processorResult1.setAverageAmplitudeOfPeristalticWaves(50);
-        processorResult1.setAverageTimeReducingAmplitude(12.0);
-        processorResult1.setAverageAmplitudeRiseTime(25.2);
-        processorResult1.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(15);
-        processorResult1.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(50.27);
-        processorResult1.setIndexOfPeristalticWave(1.9);
-        processorResult1.setCountWaves(25);
-
-        ProcessorResult processorResult2 = new ProcessorResult();
-        processorResult2.setAverageLengthOfPeristalticPeriod(10);
-        processorResult2.setAverageMaxAmplitudeOfPeristalticWaves(80);
-        processorResult2.setAverageAmplitudeOfPeristalticWaves(70);
-        processorResult2.setAverageTimeReducingAmplitude(20);
-        processorResult2.setAverageAmplitudeRiseTime(35.3);
-        processorResult2.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(20);
-        processorResult2.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(59.2);
-        processorResult2.setIndexOfPeristalticWave(3.98);
-        processorResult2.setCountWaves(35);
-
-
-        Intent chartIntent = new Intent(this, ChartActivity.class);
-        chartIntent.putExtra("processorResult1", processorResult1);
-        chartIntent.putExtra("processorResult2", processorResult2);
-        startActivity(chartIntent);
+        Intent transcriptionActivity = new Intent(this, TranscriptionActivity.class);
+        transcriptionActivity.putExtra(PROCESS_RESULT_PARAM, processorResult);
+        startActivity(transcriptionActivity);
     }
 
     public void zoomIn(View view) {
@@ -131,7 +108,7 @@ public class MainActivity extends FragmentActivity {
         waveformFragment = new CustomWaveFormFragment();
         waveformFragment.setFileName(audioFile.getAbsolutePath());
 
-//        ProcessorResult processorResult = audioProcessor.processAudio();
+        processorResult = audioProcessor.processAudio();
 
         List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
 

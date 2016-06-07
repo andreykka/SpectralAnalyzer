@@ -34,7 +34,7 @@ public class AudioProcessor {
     /**
      * Minimal value of silence.
      */
-    private static int SILENT = 2;
+    private static int NOISE = 2;
 
 
     private short[] singleChannelData;
@@ -55,10 +55,10 @@ public class AudioProcessor {
         period = sampleRate / 1000; // 44100/1000 = 1 ms
     }
 
-    public static void setUpConfiguration(float minSoundDuration, int maxSilenceLength, int silentValue) {
+    public static void setUpConfiguration(float minSoundDuration, int maxSilenceLength, int noiseValue) {
         MIN_SOUND_DURATION = minSoundDuration;
         MAX_SILENCE_LENGTH = maxSilenceLength;
-        SILENT = silentValue;
+        NOISE = noiseValue;
     }
 
     private short[] getSingleChannelData(Wave wave) {
@@ -84,6 +84,8 @@ public class AudioProcessor {
      * <br>second element indicate end sample.
      */
     public List<Pair<Integer, Integer>> getPeristalticPeriods() {
+        showCurrentConfiguration();
+
         long before = System.currentTimeMillis();
         int start, end;
         List<Pair<Integer, Integer>> periods = new ArrayList<>();
@@ -93,7 +95,7 @@ public class AudioProcessor {
         int silenceCounter = 0;
 
         for (int i = 0; i < singleChannelData.length; i += period) {
-            if (singleChannelData[i] > SILENT || singleChannelData[i] < -SILENT) {
+            if (singleChannelData[i] > NOISE || singleChannelData[i] < -NOISE) {
                 readData++;
                 silenceCounter = 0;
             } else {
@@ -415,7 +417,7 @@ public class AudioProcessor {
 
         boolean isGrowsUp = false;
         // suppose first value is limit value
-        short limitValue = period.get(0);
+        short limitValue = 0;
         for (int i = 1; i < period.size(); i++) {
             // if values grows up
             if (period.get(i) >= limitValue) {
@@ -446,6 +448,14 @@ public class AudioProcessor {
         double arithmeticMean = sum / (double) n;
 
         return sumOfSquares - Math.pow(arithmeticMean, 2) * n;
+    }
+
+    private void showCurrentConfiguration() {
+        Log.i(TAG, "MAX_SILENCE_LENGTH= " + MAX_SILENCE_LENGTH);
+        Log.i(TAG, "MIN_SOUND_DURATION= " + MIN_SOUND_DURATION);
+        Log.i(TAG, "NOISE= " + NOISE);
+        Log.i(TAG, "sampleRate= " + sampleRate);
+        Log.i(TAG, "period= " + period);
     }
 
 }

@@ -12,4 +12,6 @@ public class ActivityConstants {
 
     public static final String FILE_TO_PROCESS = "fileToProcess";
 
+    public static final String PROCESS_RESULT_PARAM = "processResultParam";
+
 }
