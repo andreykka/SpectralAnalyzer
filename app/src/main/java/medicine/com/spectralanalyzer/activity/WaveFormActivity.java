@@ -25,9 +25,9 @@ import java.util.List;
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.FILE_TO_PROCESS;
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PROCESS_RESULT_PARAM;
 
-public class MainActivity extends FragmentActivity {
+public class WaveFormActivity extends FragmentActivity {
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "WaveFormActivity";
 
     private File audioFile;
 
@@ -86,7 +86,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void showChart(View v) {
-        Intent transcriptionActivity = new Intent(this, TranscriptionActivity.class);
+        Intent transcriptionActivity = new Intent(this, ChartDetailActivity.class);
         transcriptionActivity.putExtra(PROCESS_RESULT_PARAM, processorResult);
         startActivity(transcriptionActivity);
     }

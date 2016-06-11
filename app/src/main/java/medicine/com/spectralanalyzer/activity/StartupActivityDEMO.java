@@ -26,7 +26,7 @@ import static medicine.com.spectralanalyzer.pojo.ActivityConstants.DATE_TIME_FOR
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PATH_NAME;
 import static medicine.com.spectralanalyzer.pojo.SettingConstants.*;
 
-public class StartupActivity extends Activity {
+public class StartupActivityDEMO extends Activity {
 
     private static final String PROJECT_DIR_NAME = "AnalyzerData";
     private static final int RECORD_AUDIO_REQUEST_CODE = 123;

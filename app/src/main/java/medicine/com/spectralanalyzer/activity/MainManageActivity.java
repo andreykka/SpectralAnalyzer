@@ -25,7 +25,7 @@ import static medicine.com.spectralanalyzer.pojo.ActivityConstants.DATE_TIME_FOR
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.FILE_TO_PROCESS;
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PATH_NAME;
 
-public class ListActivity extends Activity {
+public class MainManageActivity extends Activity {
 
     private static final String PROJECT_DIR_NAME = "AnalyzerData";
     private static final int RECORD_AUDIO_REQUEST_CODE = 9379992;
@@ -154,7 +154,7 @@ public class ListActivity extends Activity {
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             ItemData selectedItem = adapter.getItem(position);
             File selectedFileToProcess = selectedItem.getFile();
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            Intent intent = new Intent(getApplicationContext(), WaveFormActivity.class);
             intent.putExtra(FILE_TO_PROCESS, selectedFileToProcess);
             startActivity(intent);
         }

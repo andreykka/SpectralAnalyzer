@@ -13,7 +13,7 @@ import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PROCESS_RESULT_PARAM;
 
-public class TranscriptionActivity extends Activity {
+public class ChartDetailActivity extends Activity {
 
     private static final String COUNT_WAVES_NAME = "Count Waves:";
 

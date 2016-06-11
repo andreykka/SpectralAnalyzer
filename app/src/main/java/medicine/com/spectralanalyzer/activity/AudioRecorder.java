@@ -471,7 +471,7 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     private class ProcessBtnOnClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            Intent intent = new Intent(getApplicationContext(), WaveFormActivity.class);
             File wavFile = new File(sessionDir, wavFileName);
             intent.putExtra(FILE_TO_PROCESS, wavFile);
             startActivity(intent);

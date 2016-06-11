@@ -13,10 +13,8 @@ import com.github.mikephil.charting.data.RadarDataSet;
 import com.github.mikephil.charting.interfaces.datasets.IRadarDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import medicine.com.spectralanalyzer.R;
-import medicine.com.spectralanalyzer.pojo.ActivityConstants;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +57,7 @@ public class ChartActivity extends FragmentActivity {
         int itemId = item.getItemId();
         switch (itemId) {
             case R.id.showTranscription: {
-                Intent intent = new Intent(this, TranscriptionActivity.class);
+                Intent intent = new Intent(this, ChartDetailActivity.class);
                 intent.putExtra(PROCESS_RESULT_PARAM, processorResult);
                 startActivity(intent);
             }
