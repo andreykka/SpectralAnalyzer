@@ -45,14 +45,14 @@ public class AudioProcessor {
     private int sampleRate;
 
     /**
-     *10 Step to navigating = 1 millisecond
+     * Step to navigating = 1 millisecond
      */
     private int period;
 
-    public AudioProcessor(Wave wave) {
-        singleChannelData = getSingleChannelData(wave);
-        sampleRate = wave.getWaveHeader().getSampleRate();
-        period = sampleRate / 1000; // 44100/1000 = 1 ms
+    public AudioProcessor(short[] data, int sampleRate) {
+        this.singleChannelData = data;
+        this.sampleRate = sampleRate;
+        this.period = sampleRate / 1000; // 44100/1000 = 1 ms
     }
 
     public static void setUpConfiguration(float minSoundDuration, int maxSilenceLength, int noiseValue) {
@@ -61,7 +61,7 @@ public class AudioProcessor {
         NOISE = noiseValue;
     }
 
-    private short[] getSingleChannelData(Wave wave) {
+    public static short[] getSingleChannelData(Wave wave) {
         short[] sampleAmplitudes = wave.getSampleAmplitudes();
         int channelsCount = wave.getWaveHeader().getChannels();
 
@@ -91,7 +91,6 @@ public class AudioProcessor {
         List<Pair<Integer, Integer>> periods = new ArrayList<>();
 
         long readData = 0;
-
         int silenceCounter = 0;
 
         for (int i = 0; i < singleChannelData.length; i += period) {
@@ -187,7 +186,7 @@ public class AudioProcessor {
      * @param list in which will be searching
      * @return Pair of vales (first->max value) (second->max index)
      */
-    private Pair<Integer, Integer> getMaxValueAndIndex(List<Short> list) {
+    public Pair<Integer, Integer> getMaxValueAndIndex(List<Short> list) {
         int longPeriod = period;
         Pair<Integer, Integer> fastMax = getNearToMaxValueAndIndex(list, longPeriod);
 
@@ -195,14 +194,14 @@ public class AudioProcessor {
         int fIndex = fastMax.second ;
 
         int start = (fIndex-longPeriod > 0) ? fIndex-longPeriod : 0;
-        int end = (fIndex+longPeriod <= list.size()) ? fIndex+longPeriod : list.size();
+        int end = (fIndex+longPeriod <= list.size()-1) ? fIndex+longPeriod : list.size()-1;
 
         List<Short> listToDetail = list.subList(start, end);
 
         return getNearToMaxValueAndIndex(listToDetail, 1);
     }
 
-    private Pair<Integer, Integer> getNearToMaxValueAndIndex(List<Short> items, Integer period) {
+    public Pair<Integer, Integer> getNearToMaxValueAndIndex(List<Short> items, Integer period) {
         int maxValue = Integer.MIN_VALUE;
         int index = 0;
 
@@ -246,7 +245,7 @@ public class AudioProcessor {
 
         // 5
         // IMPORTANT COULD BE REPLACED INTO SINGLE CALCULATION WITH
-        // 6. AverageAmplitudeContractionsDuringNonPeristalticPeriod
+        // 5. AverageAmplitudeContractionsDuringNonPeristalticPeriod
         processorResult.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(
                 getMaxAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue * PERCENT_100);
 
@@ -254,12 +253,11 @@ public class AudioProcessor {
         processorResult.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(
                 getAverageAmplitudeOfNonPeristalticWaves(nonPeristalticPeriodData) / limit100PercentValue * PERCENT_100);
 
-        // 7
         Pair<Double, Double> averageAmplitudeRiseAndReduceTime = getAverageAmplitudeRiseAndReduceTime(peristalticPeriodsData);
-        processorResult.setAverageAmplitudeRiseTime(averageAmplitudeRiseAndReduceTime.first / limit100PercentValue * PERCENT_100);
-
+        // 7
+        processorResult.setAverageAmplitudeRiseTime(averageAmplitudeRiseAndReduceTime.first);
         // 8
-        processorResult.setAverageTimeReducingAmplitude(averageAmplitudeRiseAndReduceTime.second / limit100PercentValue * PERCENT_100);
+        processorResult.setAverageTimeReducingAmplitude(averageAmplitudeRiseAndReduceTime.second);
 
         // 9
         processorResult.setIndexOfPeristalticWave(
@@ -402,7 +400,7 @@ public class AudioProcessor {
      */
     public Double getMaxAmplitudeOfNonPeristalticWaves(List<Short> nonPeristalticPeriodData) {
         List<Short> limitValuesNonPeristalticPeriod = getLimitValuesPerSinglePeriod(nonPeristalticPeriodData);
-        short max = limitValuesNonPeristalticPeriod.get(0);
+        short max = 0;
 
         for (short value : limitValuesNonPeristalticPeriod) {
             if (value >= max) {
@@ -417,7 +415,7 @@ public class AudioProcessor {
 
         boolean isGrowsUp = false;
         // suppose first value is limit value
-        short limitValue = 0;
+        short limitValue = Short.MIN_VALUE;
         for (int i = 1; i < period.size(); i++) {
             // if values grows up
             if (period.get(i) >= limitValue) {
@@ -439,13 +437,13 @@ public class AudioProcessor {
         long sumOfSquares = 0;
 
         // count of limit values
-        int n = maxAmplitudes.size();
+        double n = maxAmplitudes.size();
 
         for (Short limitValue : maxAmplitudes) {
-            sum = +limitValue;
+            sum += limitValue;
             sumOfSquares += limitValue * limitValue;
         }
-        double arithmeticMean = sum / (double) n;
+        double arithmeticMean = sum / n;
 
         return sumOfSquares - Math.pow(arithmeticMean, 2) * n;
     }
@@ -456,6 +454,10 @@ public class AudioProcessor {
         Log.i(TAG, "NOISE= " + NOISE);
         Log.i(TAG, "sampleRate= " + sampleRate);
         Log.i(TAG, "period= " + period);
+    }
+
+    public void destroy() {
+        this.singleChannelData = null;
     }
 
 }
