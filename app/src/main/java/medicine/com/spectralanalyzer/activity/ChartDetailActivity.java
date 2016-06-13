@@ -62,7 +62,7 @@ public class ChartDetailActivity extends Activity {
     private void populateItems(ProcessorResult processorResult) {
         Integer itemNumber = 0;
 
-        populateItem(++itemNumber, COUNT_WAVES_NAME, (double) processorResult.getCountWaves());
+        populateItem(++itemNumber, COUNT_WAVES_NAME, processorResult.getCountWaves());
 
         populateItem(++itemNumber, AVERAGE_LENGTH_OF_PERISTALTIC_PERIOD_NAME,
                 processorResult.getAverageLengthOfPeristalticPeriod());
@@ -90,6 +90,16 @@ public class ChartDetailActivity extends Activity {
 
         ((TextView) view.findViewById(R.id.variableValueTextView)).setText(
                 String.format(VALUE_FORMAT, varValue));
+
+        rootContainer.addView(view);
+    }
+    private void populateItem(Integer itemNumber, String varName, Integer varValue) {
+        View view = inflater.inflate(R.layout.transcription_layout_item, null);
+
+        ((TextView) view.findViewById(R.id.numberTextView)).setText(String.format("%1s.", itemNumber));
+        ((TextView) view.findViewById(R.id.variableNameTextView)).setText(varName);
+
+        ((TextView) view.findViewById(R.id.variableValueTextView)).setText(varValue.toString());
 
         rootContainer.addView(view);
     }

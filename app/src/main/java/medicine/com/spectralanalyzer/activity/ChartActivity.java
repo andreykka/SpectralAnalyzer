@@ -109,7 +109,7 @@ public class ChartActivity extends FragmentActivity {
         }
 
         RadarData radarData = new RadarData(xVal, radarDataSets);
-        radarData.setValueTextSize(9f);
+        radarData.setValueTextSize(8f);
         radarData.setDrawValues(false);
         radarChart.setData(radarData);
     }
