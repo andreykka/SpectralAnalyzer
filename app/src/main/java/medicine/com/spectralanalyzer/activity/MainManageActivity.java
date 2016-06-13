@@ -2,6 +2,7 @@ package medicine.com.spectralanalyzer.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -12,9 +13,15 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+
+import com.musicg.wave.Wave;
+
+import medicine.com.spectralanalyzer.AudioProcessor;
 import medicine.com.spectralanalyzer.R;
 import medicine.com.spectralanalyzer.adapter.ArrayAdapterItem;
 import medicine.com.spectralanalyzer.pojo.ItemData;
+import medicine.com.spectralanalyzer.pojo.ProcessorResult;
+
 import org.joda.time.DateTime;
 
 import java.io.File;
@@ -24,6 +31,14 @@ import java.util.List;
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.DATE_TIME_FORMATTER;
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.FILE_TO_PROCESS;
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PATH_NAME;
+import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PROCESS_RESULT_PARAM;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.DEFAULT_MAX_SILENT_LENGTH;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.DEFAULT_MIN_SOUND_DURATION;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.DEFAULT_NOISE_VALUE;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.MAX_SILENT_LENGTH;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.MIN_SOUND_DURATION;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.NOISE_VALUE;
+import static medicine.com.spectralanalyzer.pojo.SettingConstants.SETTINGS;
 
 public class MainManageActivity extends Activity {
 
@@ -37,7 +52,6 @@ public class MainManageActivity extends Activity {
     private ArrayAdapterItem adapter;
 
     private Button processAudioBtn;
-    private Button addRecordBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +61,11 @@ public class MainManageActivity extends Activity {
         initializeSessionPath();
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
-        addRecordBtn = (Button) findViewById(R.id.addRecordBtn);
+        Button addRecordBtn = (Button) findViewById(R.id.addRecordBtn);
         processAudioBtn = (Button) findViewById(R.id.processAudioBtn);
 
         addRecordBtn.setOnClickListener(new AddRecordOnClickListener());
+        processAudioBtn.setOnClickListener(new ProcessRecordsOnClickListener());
 
         listViewItems = getLatestData();
         listView = (ListView) findViewById(R.id.listView);
@@ -59,7 +74,17 @@ public class MainManageActivity extends Activity {
         listView.setVisibility(adapter.isEmpty() ? View.GONE : View.VISIBLE);
         listView.setOnItemClickListener(new OnListViewItemClickListener());
         refreshEnabilityOfProcessBtn();
+        setUpAudioProcessorInitialSetting();
+    }
 
+    private void setUpAudioProcessorInitialSetting(){
+        SharedPreferences audioProcessorSettings = getSharedPreferences(SETTINGS, MODE_PRIVATE);
+
+        float minSoundDurationValue = audioProcessorSettings.getFloat(MIN_SOUND_DURATION, DEFAULT_MIN_SOUND_DURATION);
+        int maxSilenceLengthValue = audioProcessorSettings.getInt(MAX_SILENT_LENGTH, DEFAULT_MAX_SILENT_LENGTH);
+        int noiseValue = audioProcessorSettings.getInt(NOISE_VALUE, DEFAULT_NOISE_VALUE);
+
+        AudioProcessor.setUpConfiguration(minSoundDurationValue, maxSilenceLengthValue, noiseValue);
     }
 
     @Override
@@ -128,10 +153,7 @@ public class MainManageActivity extends Activity {
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageAvailable() {
         String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
+        return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     @Override
@@ -147,6 +169,72 @@ public class MainManageActivity extends Activity {
             intent.putExtra(PATH_NAME, sessionDir);
             startActivityForResult(intent, RECORD_AUDIO_REQUEST_CODE);
         }
+    }
+
+    private class ProcessRecordsOnClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            File[] files = sessionDir.listFiles();
+
+            List<ProcessorResult> resultList = new ArrayList<>();
+            AudioProcessor audioProcessor;
+            for (File file : files) {
+                if (file.exists()) {
+                    Wave wave = new Wave(file.getAbsolutePath());
+                    audioProcessor = new AudioProcessor(AudioProcessor.getSingleChannelData(wave),
+                            wave.getWaveHeader().getSampleRate());
+                    resultList.add(audioProcessor.processAudio());
+                    audioProcessor.destroy();
+                }
+            }
+
+            Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
+            intent.putExtra(PROCESS_RESULT_PARAM, getAverageValuesByAllProcessorResults(resultList));
+            startActivity(intent);
+        }
+    }
+
+    private ProcessorResult getAverageValuesByAllProcessorResults(List<ProcessorResult> results) {
+        int count = results.size();
+        ProcessorResult processorResult = new ProcessorResult();
+        if (count == 1) {
+            return results.get(0);
+        }
+        int countWaves = 0;
+        double averageLengthOfPeristalticPeriod = .0;
+        double averageMaxAmplitudeOfPeristalticWaves = .0;
+        double averageAmplitudeOfPeristalticWaves = .0;
+        double maxAmplitudeContractionsDuringNonPeristalticPeriod = .0;
+        double averageAmplitudeContractionsDuringNonPeristalticPeriod = .0;
+        double averageAmplitudeRiseTime = .0;
+        double averageTimeReducingAmplitude = .0;
+        double indexOfPeristalticWave = .0;
+
+        for (ProcessorResult result: results) {
+            countWaves += result.getCountWaves();
+            averageLengthOfPeristalticPeriod += result.getAverageLengthOfPeristalticPeriod();
+            averageMaxAmplitudeOfPeristalticWaves += result.getAverageMaxAmplitudeOfPeristalticWaves();
+            averageAmplitudeOfPeristalticWaves += result.getAverageAmplitudeOfPeristalticWaves();
+            maxAmplitudeContractionsDuringNonPeristalticPeriod += result.getMaxAmplitudeContractionsDuringNonPeristalticPeriod();
+            averageAmplitudeContractionsDuringNonPeristalticPeriod += result.getAverageAmplitudeContractionsDuringNonPeristalticPeriod();
+            averageAmplitudeRiseTime += result.getAverageAmplitudeRiseTime();
+            averageTimeReducingAmplitude += result.getAverageTimeReducingAmplitude();
+            indexOfPeristalticWave += result.getIndexOfPeristalticWave();
+        }
+
+        processorResult.setCountWaves(countWaves / count);
+        processorResult.setAverageLengthOfPeristalticPeriod(averageLengthOfPeristalticPeriod / count);
+        processorResult.setAverageMaxAmplitudeOfPeristalticWaves(averageMaxAmplitudeOfPeristalticWaves / count);
+        processorResult.setAverageAmplitudeOfPeristalticWaves(averageAmplitudeOfPeristalticWaves / count);
+        processorResult.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(
+                maxAmplitudeContractionsDuringNonPeristalticPeriod / count);
+        processorResult.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(
+                averageAmplitudeContractionsDuringNonPeristalticPeriod / count);
+        processorResult.setAverageAmplitudeRiseTime(averageAmplitudeRiseTime / count);
+        processorResult.setAverageTimeReducingAmplitude(averageTimeReducingAmplitude / count);
+        processorResult.setIndexOfPeristalticWave(indexOfPeristalticWave / count);
+
+        return processorResult;
     }
 
     private class OnListViewItemClickListener implements OnItemClickListener {
