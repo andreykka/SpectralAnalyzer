@@ -39,7 +39,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     private static final int BYTE_RATE = 8;
 
     private int recorderBufferSize;
-    private int trackerBufferSize;
 
     private int blockSize = 256;
 
@@ -78,7 +77,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
         selectAppropriateSampleRateRadioButton();
 
         chronometer = (Chronometer) findViewById(R.id.chronometer);
-        chronometer.setBase(SystemClock.elapsedRealtime());
 
         startStopButton.setOnClickListener(this);
         processBtn.setOnClickListener(new ProcessBtnOnClickListener());
@@ -137,7 +135,7 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
                         AudioFormat.CHANNEL_IN_MONO,
                         AudioFormat.ENCODING_PCM_16BIT);
 
-                trackerBufferSize = AudioTrack.getMinBufferSize(RECORDER_SAMPLE_RATE,
+                int trackerBufferSize = AudioTrack.getMinBufferSize(RECORDER_SAMPLE_RATE,
                         AudioFormat.CHANNEL_OUT_MONO,
                         AudioFormat.ENCODING_PCM_16BIT);
 
@@ -307,6 +305,7 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     }
 
     private void stopRecording() {
+        canvas.drawColor(Color.argb(100, 243, 243, 243));
         if (null != audioRecord) {
             isRecording = false;
 
@@ -444,6 +443,7 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
         setSampleRateDisabilityStatus(false);
         recordTask = new RecordAudio();
         recordTask.execute();
+        chronometer.setBase(SystemClock.elapsedRealtime());
         chronometer.start();
     }
 
@@ -451,8 +451,7 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
         isRecording = false;
         startStopButton.setText(R.string.start_recording);
         setSampleRateDisabilityStatus(true);
-        recordTask.cancel(true);
-//        stopRecording();
+        recordTask.cancel(false);
         processBtn.setEnabled(true);
         startStopButton.setEnabled(false);
         chronometer.stop();
