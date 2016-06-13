@@ -434,18 +434,23 @@ public class AudioProcessor {
 
     private double calculateMeanSquare(List<Short> maxAmplitudes) {
         long sum = 0;
-        long sumOfSquares = 0;
+        long sumOfDifferenceSquares = 0;
 
         // count of limit values
         double n = maxAmplitudes.size();
 
         for (Short limitValue : maxAmplitudes) {
             sum += limitValue;
-            sumOfSquares += limitValue * limitValue;
+           // sumOfSquares += limitValue * limitValue;
         }
         double arithmeticMean = sum / n;
 
-        return sumOfSquares - Math.pow(arithmeticMean, 2) * n;
+        // сума різниця квадратів
+        for (Short limitValue : maxAmplitudes) {
+            sumOfDifferenceSquares += Math.pow((limitValue - arithmeticMean), 2);
+        }
+
+        return Math.sqrt(sumOfDifferenceSquares / (n-1));
     }
 
     private void showCurrentConfiguration() {
