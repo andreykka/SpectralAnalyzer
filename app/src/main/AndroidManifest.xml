@@ -15,7 +15,6 @@
         <activity android:name=".activity.AudioRecorder"/>
         <activity android:name=".activity.ChartActivity"/>
         <activity android:name=".activity.SettingsActivity"/>
-        <activity android:name=".activity.StartupActivityDEMO"/>
         <activity android:name=".activity.ChartDetailActivity"/>
 
         <activity android:name=".activity.MainManageActivity" android:label="@string/app_name">
