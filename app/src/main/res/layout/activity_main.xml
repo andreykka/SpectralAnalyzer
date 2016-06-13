@@ -58,6 +58,7 @@
             android:id="@+id/chrtBtn"
             android:layout_gravity="bottom"
             android:layout_alignParentTop="true" android:layout_toLeftOf="@+id/btn_zoom_in"
-            android:layout_toStartOf="@+id/btn_zoom_in" android:onClick="showChart"/>
+            android:layout_toStartOf="@+id/btn_zoom_in" android:onClick="showChart"
+        android:visibility="invisible" />
 
 </RelativeLayout>

@@ -9,12 +9,12 @@ import com.semantive.waveformandroid.waveform.WaveformFragment;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CustomWaveFormFragment extends WaveformFragment {
+public class SpectralAnalyzerWaveFormFragment extends WaveformFragment {
 
     private String fileName = "notFound";
     private List<Pair<Double, Double>> periods = new ArrayList<>();
 
-    public CustomWaveFormFragment() {
+    public SpectralAnalyzerWaveFormFragment() {
     }
 
     public void setFileName(String fileName) {

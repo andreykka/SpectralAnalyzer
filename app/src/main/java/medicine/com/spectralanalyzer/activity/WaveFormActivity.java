@@ -15,7 +15,7 @@ import android.widget.Button;
 import com.musicg.wave.Wave;
 import medicine.com.spectralanalyzer.AudioProcessor;
 import medicine.com.spectralanalyzer.R;
-import medicine.com.spectralanalyzer.fragment.CustomWaveFormFragment;
+import medicine.com.spectralanalyzer.fragment.SpectralAnalyzerWaveFormFragment;
 import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
 import java.io.File;
@@ -31,8 +31,7 @@ public class WaveFormActivity extends FragmentActivity {
 
     private File audioFile;
 
-    private AudioProcessor audioProcessor;
-    private CustomWaveFormFragment waveformFragment;
+    private SpectralAnalyzerWaveFormFragment waveformFragment;
     private FragmentManager fragmentManager = getSupportFragmentManager();
 
     private Button btnZoomIn;
@@ -103,20 +102,21 @@ public class WaveFormActivity extends FragmentActivity {
         if (!audioFile.exists()) {
             return;
         }
-        audioProcessor = new AudioProcessor(new Wave(audioFile.getAbsolutePath()));
+        Wave wave = new Wave(audioFile.getAbsolutePath());
+        AudioProcessor audioProcessor = new AudioProcessor(AudioProcessor.getSingleChannelData(wave),
+                wave.getWaveHeader().getSampleRate());
 
-        waveformFragment = new CustomWaveFormFragment();
+        waveformFragment = new SpectralAnalyzerWaveFormFragment();
         waveformFragment.setFileName(audioFile.getAbsolutePath());
 
-        processorResult = audioProcessor.processAudio();
-
         List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
-
         waveformFragment.setPeriods(periodsOfSound);
+        audioProcessor.destroy();
+        wave = null;
 
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.container, waveformFragment);
         fragmentTransaction.attach(waveformFragment);
+        fragmentTransaction.replace(R.id.container, waveformFragment);
         fragmentTransaction.commit();
 
         btnZoomIn.setEnabled(true);
