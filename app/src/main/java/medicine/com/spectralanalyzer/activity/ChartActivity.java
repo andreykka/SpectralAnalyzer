@@ -22,7 +22,7 @@ import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PROCESS_RESUL
 
 public class ChartActivity extends FragmentActivity {
 
-    private RadarChart mChart;
+    private RadarChart radarChart;
     private ProcessorResult processorResult;
 
     @Override
@@ -32,16 +32,17 @@ public class ChartActivity extends FragmentActivity {
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.chart_layout);
 
-        mChart = (RadarChart) findViewById(R.id.chart1);
+        radarChart = (RadarChart) findViewById(R.id.chart1);
 
-        mChart.setWebLineWidth(1.5f);
-        mChart.setWebLineWidthInner(0.75f);
-        mChart.setWebAlpha(100);
+        radarChart.setWebLineWidth(1.5f);
+        radarChart.setWebLineWidthInner(0.75f);
+        radarChart.setWebAlpha(100);
+        drawChartAxises(getAxises());
 
         Intent intent = getIntent();
         if (intent != null) {
             processorResult = (ProcessorResult) intent.getSerializableExtra(PROCESS_RESULT_PARAM);
-            setData(getAxises().toArray(new ProcessorResult[getAxises().size()]));
+            drawChart(processorResult);
         }
 
     }
@@ -65,37 +66,53 @@ public class ChartActivity extends FragmentActivity {
         return true;
     }
 
+    public void drawChart(ProcessorResult data) {
+        ArrayList<Entry> entries = new ArrayList<>();
+        entries.add(new Entry((float) data.getCountWaves(), 0));
+        entries.add(new Entry((float) data.getAverageLengthOfPeristalticPeriod(), 5));
+        entries.add(new Entry((float) data.getAverageMaxAmplitudeOfPeristalticWaves(), 7));
+        entries.add(new Entry((float) data.getAverageAmplitudeOfPeristalticWaves(), 4));
+        entries.add(new Entry((float) data.getMaxAmplitudeContractionsDuringNonPeristalticPeriod(), 6));
+        entries.add(new Entry((float) data.getAverageAmplitudeContractionsDuringNonPeristalticPeriod(), 3));
+        entries.add(new Entry((float) data.getAverageAmplitudeRiseTime(), 2));
+        entries.add(new Entry((float) data.getAverageTimeReducingAmplitude(), 1));
+        entries.add(new Entry((float) data.getIndexOfPeristalticWave(), 8));
 
-    public void setData(ProcessorResult... datas) {
-        int i = 0;
+        RadarDataSet dataSet = new RadarDataSet(entries, "Processor Result" );
+        dataSet.setColor(ColorTemplate.COLORFUL_COLORS[0]);
+        dataSet.setFillColor(ColorTemplate.COLOR_NONE);
+        radarChart.getData().getDataSets().add(dataSet);
+    }
+
+    public void drawChartAxises(List<ProcessorResult> axises) {
+        int i = 0, j=0;
 
         List<IRadarDataSet> radarDataSets = new ArrayList<>();
 
-        for (ProcessorResult data : datas) {
+        for (ProcessorResult data : axises) {
             ArrayList<Entry> yVals = new ArrayList<>();
 
             yVals.add(new Entry((float) data.getCountWaves(), 0));
-            yVals.add(new Entry((float) data.getAverageTimeReducingAmplitude(), 1));
-            yVals.add(new Entry((float) data.getAverageAmplitudeRiseTime(), 2));
-            yVals.add(new Entry((float) data.getAverageAmplitudeContractionsDuringNonPeristalticPeriod(), 3));
-            yVals.add(new Entry((float) data.getAverageAmplitudeOfPeristalticWaves(), 4));
             yVals.add(new Entry((float) data.getAverageLengthOfPeristalticPeriod(), 5));
-            yVals.add(new Entry((float) data.getMaxAmplitudeContractionsDuringNonPeristalticPeriod(), 6));
             yVals.add(new Entry((float) data.getAverageMaxAmplitudeOfPeristalticWaves(), 7));
+            yVals.add(new Entry((float) data.getAverageAmplitudeOfPeristalticWaves(), 4));
+            yVals.add(new Entry((float) data.getMaxAmplitudeContractionsDuringNonPeristalticPeriod(), 6));
+            yVals.add(new Entry((float) data.getAverageAmplitudeContractionsDuringNonPeristalticPeriod(), 3));
+            yVals.add(new Entry((float) data.getAverageAmplitudeRiseTime(), 2));
+            yVals.add(new Entry((float) data.getAverageTimeReducingAmplitude(), 1));
             yVals.add(new Entry((float) data.getIndexOfPeristalticWave(), 8));
 
-            RadarDataSet dataSet = new RadarDataSet(yVals, "Set " + ++i);
+            RadarDataSet dataSet = new RadarDataSet(yVals, j++ == 0 ? "Min Axis" : "Max Axis" );
             dataSet.setColor(ColorTemplate.VORDIPLOM_COLORS[i]);
             dataSet.setFillColor(ColorTemplate.COLOR_NONE);
             radarDataSets.add(dataSet);
         }
 
         RadarData radarData = new RadarData(xVal, radarDataSets);
-        radarData.setValueTextSize(8f);
+        radarData.setValueTextSize(9f);
         radarData.setDrawValues(false);
-        mChart.setData(radarData);
+        radarChart.setData(radarData);
     }
-
 
     private List<String> xVal = new ArrayList<String>() {{
         add("1");
@@ -109,37 +126,53 @@ public class ChartActivity extends FragmentActivity {
         add("9");
     }};
 
-
     public List<ProcessorResult> getAxises() {
         List<ProcessorResult> axises = new ArrayList<>();
 
         ProcessorResult processorResult1 = new ProcessorResult();
         processorResult1.setAverageLengthOfPeristalticPeriod(5);
-        processorResult1.setAverageMaxAmplitudeOfPeristalticWaves(50);
-        processorResult1.setAverageAmplitudeOfPeristalticWaves(50);
-        processorResult1.setAverageTimeReducingAmplitude(12.0);
-        processorResult1.setAverageAmplitudeRiseTime(25.2);
-        processorResult1.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(15);
-        processorResult1.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(50.27);
-        processorResult1.setIndexOfPeristalticWave(1.9);
+        processorResult1.setAverageMaxAmplitudeOfPeristalticWaves(30);
+        processorResult1.setAverageAmplitudeOfPeristalticWaves(40);
+        processorResult1.setAverageTimeReducingAmplitude(10);
+        processorResult1.setAverageAmplitudeRiseTime(25);
+        processorResult1.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(18);
+        processorResult1.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(31);
+        processorResult1.setIndexOfPeristalticWave(2);
         processorResult1.setCountWaves(25);
 
         axises.add(processorResult1);
 
         ProcessorResult processorResult2 = new ProcessorResult();
-        processorResult2.setAverageLengthOfPeristalticPeriod(10);
+        processorResult2.setAverageLengthOfPeristalticPeriod(30);
         processorResult2.setAverageMaxAmplitudeOfPeristalticWaves(80);
         processorResult2.setAverageAmplitudeOfPeristalticWaves(70);
-        processorResult2.setAverageTimeReducingAmplitude(20);
-        processorResult2.setAverageAmplitudeRiseTime(35.3);
-        processorResult2.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(20);
+        processorResult2.setAverageTimeReducingAmplitude(45);
+        processorResult2.setAverageAmplitudeRiseTime(48);
+        processorResult2.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(68);
         processorResult2.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(59.2);
-        processorResult2.setIndexOfPeristalticWave(3.98);
-        processorResult2.setCountWaves(35);
+        processorResult2.setIndexOfPeristalticWave(9);
+        processorResult2.setCountWaves(55);
 
         axises.add(processorResult2);
 
         return axises;
     }
+
+/*
+    private ProcessorResult getProcessorResult() {
+        ProcessorResult processorResult1 = new ProcessorResult();
+        processorResult1.setAverageLengthOfPeristalticPeriod(20);
+        processorResult1.setAverageMaxAmplitudeOfPeristalticWaves(50);
+        processorResult1.setAverageAmplitudeOfPeristalticWaves(50);
+        processorResult1.setAverageTimeReducingAmplitude(10);
+        processorResult1.setAverageAmplitudeRiseTime(40);
+        processorResult1.setAverageAmplitudeContractionsDuringNonPeristalticPeriod(30);
+        processorResult1.setMaxAmplitudeContractionsDuringNonPeristalticPeriod(50);
+        processorResult1.setIndexOfPeristalticWave(10);
+        processorResult1.setCountWaves(30);
+        return processorResult1;
+
+    }
+*/
 
 }

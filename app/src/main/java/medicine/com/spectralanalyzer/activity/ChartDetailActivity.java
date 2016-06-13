@@ -41,7 +41,7 @@ public class ChartDetailActivity extends Activity {
     private static final String INDEX_OF_POWER_OF_PERISTALTIC_WAVES_NAME =
             "Index Of Power Of Peristaltic Waves";
 
-    private static final String VALUE_FORMAT = "%1$,.2f";
+    private static final String VALUE_FORMAT = "%.4f";
 
     private LayoutInflater inflater;
     private LinearLayout rootContainer;
