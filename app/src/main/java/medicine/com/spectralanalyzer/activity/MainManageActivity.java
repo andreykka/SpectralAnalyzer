@@ -59,8 +59,6 @@ public class MainManageActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.list_layout);
-
-        initializeSessionPath();
         PreferenceManager.setDefaultValues(this, R.xml.settings, false);
 
         Button addRecordBtn = (Button) findViewById(R.id.addRecordBtn);
@@ -68,9 +66,15 @@ public class MainManageActivity extends Activity {
 
         addRecordBtn.setOnClickListener(new AddRecordOnClickListener());
         processAudioBtn.setOnClickListener(new ProcessRecordsOnClickListener());
+        listView = (ListView) findViewById(R.id.listView);
+        startSession();
+
+    }
+
+    private void startSession() {
+        initializeSessionPath();
 
         listViewItems = getLatestData();
-        listView = (ListView) findViewById(R.id.listView);
         adapter = new ArrayAdapterItem(this, R.layout.list_view_row_item, listViewItems);
         listView.setAdapter(adapter);
         listView.setVisibility(adapter.isEmpty() ? View.GONE : View.VISIBLE);
@@ -103,6 +107,11 @@ public class MainManageActivity extends Activity {
 
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
+                break;
+            }
+            case R.id.start_session_item: {
+                startSession();
+                break;
             }
         }
         return true;

@@ -12,18 +12,17 @@ import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.Button;
+import android.widget.Toast;
+
 import com.musicg.wave.Wave;
 import medicine.com.spectralanalyzer.AudioProcessor;
 import medicine.com.spectralanalyzer.R;
 import medicine.com.spectralanalyzer.fragment.SpectralAnalyzerWaveFormFragment;
-import medicine.com.spectralanalyzer.pojo.ProcessorResult;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.List;
 
 import static medicine.com.spectralanalyzer.pojo.ActivityConstants.FILE_TO_PROCESS;
-import static medicine.com.spectralanalyzer.pojo.ActivityConstants.PROCESS_RESULT_PARAM;
 
 public class WaveFormActivity extends FragmentActivity {
 
@@ -36,21 +35,18 @@ public class WaveFormActivity extends FragmentActivity {
 
     private Button btnZoomIn;
     private Button btnZoomOut;
-    private Button start_process_btn;
-
-    private ProcessorResult processorResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.waveform_layout);
 
         btnZoomIn = (Button) findViewById(R.id.btn_zoom_in);
         btnZoomOut = (Button) findViewById(R.id.btn_zoom_out);
-        start_process_btn = (Button) findViewById(R.id.start_process_btn);
+        Button findPeriodsBtn = (Button) findViewById(R.id.find_periods_btn);
+        findPeriodsBtn.setOnClickListener(new FindPeriodsBtnClickListener());
 
         Intent requestedIntent = getIntent();
-
         if (requestedIntent != null) {
             audioFile = (File) requestedIntent.getSerializableExtra(FILE_TO_PROCESS);
         } else {
@@ -59,12 +55,12 @@ public class WaveFormActivity extends FragmentActivity {
             finish();
         }
         processAudioFile();
-        start_process_btn.setEnabled(true);
+        findPeriodsBtn.setEnabled(true);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        getMenuInflater().inflate(R.menu.configuration_menu, menu);
         return true;
     }
 
@@ -80,22 +76,19 @@ public class WaveFormActivity extends FragmentActivity {
         return true;
     }
 
-    public void onBtnClick(View view) throws FileNotFoundException {
-        processAudioFile();
-    }
-
-    public void showChart(View v) {
-        Intent transcriptionActivity = new Intent(this, ChartDetailActivity.class);
-        transcriptionActivity.putExtra(PROCESS_RESULT_PARAM, processorResult);
-        startActivity(transcriptionActivity);
-    }
-
     public void zoomIn(View view) {
         waveformFragment.waveformZoomIn();
     }
 
     public void zoomOut(View view) {
         waveformFragment.waveformZoomOut();
+    }
+
+    private class FindPeriodsBtnClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            processAudioFile();
+        }
     }
 
     private void processAudioFile() {
@@ -112,7 +105,6 @@ public class WaveFormActivity extends FragmentActivity {
         List<Pair<Double, Double>> periodsOfSound = audioProcessor.getInSecondPeriods();
         waveformFragment.setPeriods(periodsOfSound);
         audioProcessor.destroy();
-        wave = null;
 
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.attach(waveformFragment);
@@ -121,7 +113,12 @@ public class WaveFormActivity extends FragmentActivity {
 
         btnZoomIn.setEnabled(true);
         btnZoomOut.setEnabled(true);
-        Log.i(TAG, "Found " + periodsOfSound.size() + " periods of sounds");
+
+        String foundPeriods = "Found " + periodsOfSound.size() + " periods";
+        Toast toast = Toast.makeText(getApplicationContext(), foundPeriods, Toast.LENGTH_LONG);
+        toast.show();
+
+        Log.i(TAG, foundPeriods + " of sounds");
     }
 
 

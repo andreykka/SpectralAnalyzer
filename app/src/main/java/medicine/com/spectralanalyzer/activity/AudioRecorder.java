@@ -100,7 +100,7 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        getMenuInflater().inflate(R.menu.configuration_menu, menu);
         return true;
     }
 
