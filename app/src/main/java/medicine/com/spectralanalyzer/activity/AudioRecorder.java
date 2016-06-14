@@ -1,6 +1,7 @@
 package medicine.com.spectralanalyzer.activity;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -45,7 +46,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     private RealDoubleFFT transformer;
 
     private Button startStopButton;
-    private Button processBtn;
     private RadioButton radioButton8000;
     private RadioButton radioButton22050;
 
@@ -56,13 +56,13 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     private boolean isRecording = false;
 
     private File sessionDir;
-    private String wavFileName;
 
     private RecordAudio recordTask;
     private AudioRecord audioRecord;
     private AudioTrack track;
 
     private Chronometer chronometer;
+    private ProgressDialog progressDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,7 +70,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
         setContentView(R.layout.record_layout);
 
         startStopButton = (Button) this.findViewById(R.id.StartStopButton);
-        processBtn = (Button) this.findViewById(R.id.ProcessBtn);
 
         radioButton8000 = (RadioButton) this.findViewById(R.id.radioButton8000);
         radioButton22050 = (RadioButton) this.findViewById(R.id.radioButton22050);
@@ -79,7 +78,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
         chronometer = (Chronometer) findViewById(R.id.chronometer);
 
         startStopButton.setOnClickListener(this);
-        processBtn.setOnClickListener(new ProcessBtnOnClickListener());
         transformer = new RealDoubleFFT(blockSize);
 
         imageView = (ImageView) this.findViewById(R.id.ImageView01);
@@ -201,7 +199,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
                     e.printStackTrace();
                 }
             }
-            stopRecording();
         }
 
         private void startRecording(FileOutputStream fileOutputStream) {
@@ -230,10 +227,18 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
                 publishProgress(toTransform);
             }
         }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            stopRecording();
+            progressDialog.dismiss();
+            finish();
+        }
     }
 
     private FileOutputStream getWavFileOutputSteam() {
-        wavFileName = DATE_TIME_FORMATTER.print(DateTime.now()) + AUDIO_RECORDER_FILE_EXT_WAV;
+        String wavFileName = DATE_TIME_FORMATTER.print(DateTime.now()) + AUDIO_RECORDER_FILE_EXT_WAV;
         FileOutputStream wavFileOutputStream = null;
 
         try {
@@ -305,7 +310,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     }
 
     private void stopRecording() {
-        canvas.drawColor(Color.argb(100, 243, 243, 243));
         if (null != audioRecord) {
             isRecording = false;
 
@@ -334,7 +338,6 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
 
         copyFromTempWaveFile();
         deleteTempFile();
-
     }
 
     private void deleteTempFile() {
@@ -448,14 +451,22 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
     }
 
     private void setUpInterruptRecordingConfiguration() {
+        progressDialog = ProgressDialog.show(AudioRecorder.this, "Wait...", "Saving audio file...", true);
         isRecording = false;
+        recordTask.cancel(false);
+        chronometer.stop();
         startStopButton.setText(R.string.start_recording);
         setSampleRateDisabilityStatus(true);
-        recordTask.cancel(false);
-        processBtn.setEnabled(true);
         startStopButton.setEnabled(false);
-        chronometer.stop();
 
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                while (progressDialog.isShowing()){
+                    continue;
+                };
+            }
+        }).start();
     }
 
     public void onRadioButtonSelect(View v) {
@@ -467,13 +478,4 @@ public class AudioRecorder extends Activity implements View.OnClickListener {
         }
     }
 
-    private class ProcessBtnOnClickListener implements View.OnClickListener {
-        @Override
-        public void onClick(View v) {
-            Intent intent = new Intent(getApplicationContext(), WaveFormActivity.class);
-            File wavFile = new File(sessionDir, wavFileName);
-            intent.putExtra(FILE_TO_PROCESS, wavFile);
-            startActivity(intent);
-        }
-    }
 }

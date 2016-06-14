@@ -83,16 +83,14 @@
     <LinearLayout
             android:orientation="horizontal"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="5dp">
         <Button android:text="@string/start_recording"
                 android:id="@+id/StartStopButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content" android:layout_weight="1"/>
-        <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/process_btn_text"
-                android:id="@+id/ProcessBtn" android:enabled="false"/>
     </LinearLayout>
 
 </LinearLayout>
