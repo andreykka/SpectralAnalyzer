@@ -1,6 +1,7 @@
 package medicine.com.spectralanalyzer.activity;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -52,6 +53,7 @@ public class MainManageActivity extends Activity {
     private ArrayAdapterItem adapter;
 
     private Button processAudioBtn;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,27 +176,43 @@ public class MainManageActivity extends Activity {
     private class ProcessRecordsOnClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            File[] files = sessionDir.listFiles();
+            progressDialog = ProgressDialog.show(MainManageActivity.this, "Wait...",
+                    "Audio files processing...", true);
 
-            List<ProcessorResult> resultList = new ArrayList<>();
-            AudioProcessor audioProcessor;
-            for (File file : files) {
-                if (file.exists()) {
-                    Wave wave = new Wave(file.getAbsolutePath());
-                    audioProcessor = new AudioProcessor(AudioProcessor.getSingleChannelData(wave),
-                            wave.getWaveHeader().getSampleRate());
-                    resultList.add(audioProcessor.processAudio());
-                    audioProcessor.destroy();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final List<ProcessorResult> resultList = new ArrayList<>();
+
+                    File[] files = sessionDir.listFiles();
+                    for (File file : files) {
+                        if (file.exists()) {
+                            Wave wave = new Wave(file.getAbsolutePath());
+                            AudioProcessor audioProcessor = new AudioProcessor(AudioProcessor.getSingleChannelData(wave),
+                                    wave.getWaveHeader().getSampleRate());
+                            resultList.add(audioProcessor.processAudio());
+                            audioProcessor.destroy();
+                        }
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();
+                            Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
+                            intent.putExtra(PROCESS_RESULT_PARAM, getAverageValuesByAllProcessorResults(resultList));
+                            startActivity(intent);
+                        }
+                    });
                 }
-            }
+            }).start();
 
-            Intent intent = new Intent(getApplicationContext(), ChartActivity.class);
-            intent.putExtra(PROCESS_RESULT_PARAM, getAverageValuesByAllProcessorResults(resultList));
-            startActivity(intent);
         }
     }
 
     private ProcessorResult getAverageValuesByAllProcessorResults(List<ProcessorResult> results) {
+        if (results == null || results.size() <= 0) {
+            return null;
+        }
         int count = results.size();
         ProcessorResult processorResult = new ProcessorResult();
         if (count == 1) {

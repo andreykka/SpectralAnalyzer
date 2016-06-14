@@ -1,6 +1,7 @@
 package medicine.com.spectralanalyzer.activity;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
@@ -34,15 +35,17 @@ public class ChartActivity extends FragmentActivity {
 
         radarChart = (RadarChart) findViewById(R.id.chart1);
 
-        radarChart.setWebLineWidth(1.5f);
-        radarChart.setWebLineWidthInner(0.75f);
+        radarChart.setWebLineWidth(1.75f);
+        radarChart.setWebLineWidthInner(1.75f);
         radarChart.setWebAlpha(100);
         drawChartAxises(getAxises());
 
         Intent intent = getIntent();
         if (intent != null) {
             processorResult = (ProcessorResult) intent.getSerializableExtra(PROCESS_RESULT_PARAM);
-            drawChart(processorResult);
+            if (processorResult != null) {
+                drawChart(processorResult);
+            }
         }
 
     }
@@ -79,8 +82,9 @@ public class ChartActivity extends FragmentActivity {
         entries.add(new Entry((float) data.getIndexOfPeristalticWave(), 8));
 
         RadarDataSet dataSet = new RadarDataSet(entries, "Processor Result" );
-        dataSet.setColor(ColorTemplate.COLORFUL_COLORS[0]);
+        dataSet.setColor(Color.rgb(3, 160, 22));
         dataSet.setFillColor(ColorTemplate.COLOR_NONE);
+        dataSet.setLineWidth(2f);
         radarChart.getData().getDataSets().add(dataSet);
     }
 
@@ -103,8 +107,9 @@ public class ChartActivity extends FragmentActivity {
             yVals.add(new Entry((float) data.getIndexOfPeristalticWave(), 8));
 
             RadarDataSet dataSet = new RadarDataSet(yVals, j++ == 0 ? "Min Axis" : "Max Axis" );
-            dataSet.setColor(ColorTemplate.VORDIPLOM_COLORS[i]);
+            dataSet.setColor(Color.rgb(215, 4, 15));
             dataSet.setFillColor(ColorTemplate.COLOR_NONE);
+            dataSet.setLineWidth(2.75f);
             radarDataSets.add(dataSet);
         }
 
